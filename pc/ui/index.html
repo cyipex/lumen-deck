@@ -1,0 +1,132 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lumen Desk</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300&family=Outfit:wght@100;300&family=Space+Grotesk:wght@300&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="bg" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+<svg class="grain" aria-hidden="true"><filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#grain)"/></svg>
+
+<div class="app">
+  <aside class="side glass">
+    <div class="brand">Lumen <span>Desk</span></div>
+    <nav id="nav">
+      <a href="#panel" data-view="panel">Panel</a>
+      <a href="#look" data-view="look">Appearance</a>
+      <a href="#lights" data-view="lights">Lights</a>
+      <a href="#spotify" data-view="spotify">Spotify</a>
+      <a href="#tablet" data-view="tablet">Tablet <span class="badge" id="pendingBadge" hidden>1</span></a>
+    </nav>
+    <div class="conn" id="conn"><span class="dot"></span><span id="connText">Tablet not connected</span></div>
+  </aside>
+
+  <main class="main">
+    <section id="view-panel" class="view">
+      <header class="head">
+        <div class="tabs" id="pageTabs"></div>
+        <div class="head-actions">
+          <select class="layout-select" id="pageLayout" title="Page layout">
+            <option value="grid">Grid 4 × 3</option>
+            <option value="big">Big tiles 3 × 2</option>
+            <option value="sliders">Sliders (volume mixer)</option>
+          </select>
+          <button class="btn ghost" id="renamePage">Rename</button>
+          <button class="btn ghost danger" id="deletePage">Delete page</button>
+        </div>
+      </header>
+      <div class="editor">
+        <div class="preview-wrap"><div class="tablet" id="tablet"></div></div>
+        <div class="inspector glass" id="inspector"></div>
+      </div>
+    </section>
+
+    <section id="view-look" class="view" hidden>
+      <h1>Appearance</h1>
+      <div class="card glass">
+        <h2>Background color</h2>
+        <p class="muted">Changes only the color of the background glow.</p>
+        <div class="swatches" id="tints"></div>
+      </div>
+      <div class="card glass">
+        <h2>Clock font</h2>
+        <div class="fonts" id="fonts"></div>
+      </div>
+      <div class="card glass">
+        <h2>Media tile</h2>
+        <p class="muted">How the player and PC volume look on the tablet's home page.</p>
+        <div class="medias" id="medias"></div>
+      </div>
+      <div class="card glass">
+        <h2>Weather</h2>
+        <p class="muted">Current: <b id="cityNow"></b></p>
+        <div class="row"><input id="cityInput" placeholder="Type a city, e.g. London"><button class="btn" id="citySearch">Search</button></div>
+        <div class="list" id="cityResults"></div>
+      </div>
+    </section>
+
+    <section id="view-lights" class="view" hidden>
+      <h1>Lights</h1>
+      <div class="card glass">
+        <h2>Yeelight</h2>
+        <p class="muted">In the Yeelight app open each bulb → Settings → <b>LAN Control</b> and turn it on. Then press Search. If Windows shows a firewall prompt, allow Node.js on private networks.</p>
+        <button class="btn primary" id="discover">Search for bulbs</button>
+        <div class="list" id="lightList"></div>
+      </div>
+      <div class="card glass">
+        <h2>Other Google Home devices</h2>
+        <p class="muted">Bulbs without local control (e.g. Nite Bird) are planned for a later version through Google Assistant.</p>
+      </div>
+    </section>
+
+    <section id="view-spotify" class="view" hidden>
+      <h1>Spotify</h1>
+      <div class="card glass">
+        <h2>Connection</h2>
+        <p id="spotifyState" class="muted"></p>
+        <ol class="steps-help">
+          <li>Open <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">developer.spotify.com/dashboard</a>, log in and press <b>Create app</b>.</li>
+          <li>Name: Lumen Desk. Under <b>Redirect URIs</b> add: <code id="redirectUri"></code></li>
+          <li>Tick <b>Web API</b>, save, open Settings and copy the <b>Client ID</b> here.</li>
+        </ol>
+        <div class="row"><input id="clientId" placeholder="Client ID"><button class="btn" id="saveClient">Save</button></div>
+        <div class="row" style="margin-top:14px"><a class="btn primary" id="spotifyLogin" href="/spotify/login">Log in to Spotify</a><button class="btn ghost" id="spotifyLogout">Log out</button></div>
+      </div>
+    </section>
+
+    <section id="view-tablet" class="view" hidden>
+      <h1>Tablet</h1>
+      <div class="card glass">
+        <h2>Waiting for approval</h2>
+        <div class="list" id="pendingList"></div>
+      </div>
+      <div class="card glass">
+        <h2>Allowed tablets</h2>
+        <div class="list" id="allowedList"></div>
+      </div>
+      <div class="card glass">
+        <h2>Notifications on the tablet</h2>
+        <p class="muted">Notifications from the PC (Discord, WhatsApp, Windows…) briefly show up on the tablet. Untick the apps you don't want there.</p>
+        <label class="check"><input type="checkbox" id="notifyOn">Show notifications from the PC</label>
+        <div class="list" id="notifyApps"></div>
+      </div>
+      <div class="card glass">
+        <h2>Server status</h2>
+        <p class="muted" id="serverState"></p>
+        <pre class="log" id="serverLog"></pre>
+        <div class="actions"><button class="btn small" id="reloadLog">Reload log</button></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast glass" id="toast" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# Private data of the PC server: config, Spotify token, allowed tablets, logs
+pc/data/
+
+# Downloaded tools (ffmpeg is over GitHub's file size limit; ffmpeg/adb have their own licenses)
+pc/bin/
+
+# Node
+node_modules/
+
+# Android / Gradle
+.gradle/
+build/
+local.properties
+*.apk
+*.aab
+.idea/
+*.iml
+.kotlin/
+
+# OS
+.DS_Store
+Thumbs.db
