@@ -32,12 +32,13 @@ require('esbuild').buildSync({
 });
 
 step('Packing Node.js and the server into LumenDesk.exe');
+// Relative paths, so the builder's folder (and Windows user name) is not stored inside the exe.
 fs.writeFileSync(path.join(OUT, 'sea-config.json'), JSON.stringify({
-  main: path.join(OUT, 'bundle.js'),
-  output: path.join(OUT, 'sea.blob'),
+  main: 'bundle.js',
+  output: 'sea.blob',
   disableExperimentalSEAWarning: true
 }));
-execFileSync(process.execPath, ['--experimental-sea-config', path.join(OUT, 'sea-config.json')], { stdio: 'inherit' });
+execFileSync(process.execPath, ['--experimental-sea-config', 'sea-config.json'], { stdio: 'inherit', cwd: OUT });
 fs.copyFileSync(process.execPath, EXE);
 
 // Icon and file details (before the blob is injected).
