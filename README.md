@@ -1,87 +1,144 @@
 # Lumen Desk
 
-Turn an old Android tablet into a control panel for your Windows PC – with a dark-glass look, Spotify, a volume mixer, smart lights, macro tiles, notifications and even a **second monitor**.
+**Give your old Android tablet a new job: a beautiful control panel that sits next to your Windows PC.**
 
-A small Node.js server runs on the PC; the tablet app connects to it over Wi-Fi or a USB cable.
+See the time and weather, control Spotify, change the volume of every app, switch your lights, run shortcuts with one tap – or use the tablet as a **second monitor**. Everything is set up from a simple window on your PC.
 
-> Built and tested on a Huawei MediaPad T3 10 (Android 7.0) with a Windows 11 laptop. Other devices should work but are not tested yet.
->
-> Looking for the TV launcher with the same look? See **Lumen TV**.
+![Settings window on the PC](docs/screenshots/pc-tiles.jpg)
 
-## Features
+---
 
-**On the tablet**
-- Home screen with a big clock, date, weather, CPU / RAM and a Spotify card
-- Spotify: play / pause / skip / seek, plus a **library** (liked songs, your playlists, search) – tap a track and it plays on the PC
-- PC volume slider, mute, audio output switch (shows the Windows volume popup)
-- **Mixer page**: a volume slider for every app that is playing sound (Spotify, Discord, browser, games…)
-- Tiles for macros (shortcuts, apps, files, web pages in a chosen browser profile, media keys, system actions), Yeelight bulbs and page switching; 4 × 3 and big 3 × 2 layouts, multiple pages
-- **Second monitor**: the tablet shows a virtual Windows display; touch = mouse (tap, drag, hold for right click, two-finger scroll, three-finger tap to go back)
-- Notifications from Windows apps (Discord, WhatsApp…) pop up on the tablet
-- App catalog, launcher settings (appearance, battery saving, set/exit default launcher)
-- Dims the screen after 3 minutes without touch, reconnects by itself, prefers the USB cable when plugged in
+## What can it do?
 
-**On the PC** – a settings window (`http://127.0.0.1:47801`) to edit pages and tiles with drag & drop, pick colors and the clock font, set up Spotify and lights, approve tablets and read the server log.
-
-## Requirements
-
-| Part | Needs |
+| | |
 |---|---|
-| PC | Windows 10/11, [Node.js](https://nodejs.org) **22.5+** |
-| Tablet | Android 7.0+ |
-| Spotify (optional) | Spotify Premium + a free app at developer.spotify.com |
-| Lights (optional) | Yeelight bulbs with *LAN Control* enabled |
-| Second monitor (optional) | [Virtual Display Driver](https://github.com/VirtualDrivers/Virtual-Display-Driver), [ffmpeg](https://www.gyan.dev/ffmpeg/builds/) |
-| USB connection (optional) | `adb` from [Android platform-tools](https://developer.android.com/tools/releases/platform-tools), USB debugging on the tablet |
+| 🕒 **Clock & weather** | A big clock, the date, the weather and your PC's CPU / RAM usage. |
+| 🎵 **Spotify** | See what's playing, pause, skip, seek – and browse your playlists and liked songs. Tap a song and it plays on your PC. |
+| 🔊 **Volume mixer** | One slider for the whole PC and one for every app that plays sound (Spotify, Discord, your browser, games…). |
+| ⚡ **One-tap tiles** | Open apps, files or websites (even in a specific browser profile), press keyboard shortcuts, mute your mic, lock or sleep the PC. |
+| 💡 **Smart lights** | Turn Yeelight bulbs on and off. |
+| 🖥️ **Second monitor** | The tablet becomes an extra screen for your PC – touch works like a mouse. |
+| 🔔 **Notifications** | Messages from Discord, WhatsApp and other apps pop up on the tablet. |
+| 🎨 **Your style** | 10 background colors, 3 clock fonts, multiple pages and layouts. |
 
-## Install
+![Volume mixer page](docs/screenshots/pc-mixer.jpg)
 
-### 1. PC server
-```bash
-cd pc
-npm install
-```
-Optional tools go into `pc/bin/` (not included in the repo):
-- `ffmpeg.exe` – from the *ffmpeg-release-essentials* zip (`bin/ffmpeg.exe` inside it)
-- `adb.exe`, `AdbWinApi.dll`, `AdbWinUsbApi.dll` – from Android platform-tools
+---
 
-Then run `pc/install.ps1` once (right-click → *Run with PowerShell*, or `powershell -ExecutionPolicy Bypass -File pc/install.ps1`). It adds a **Lumen Desk** desktop icon and starts the server with Windows. You can also start it by hand with `node run.js` in `pc/` – the supervisor restarts the server after a crash; logs are in `pc/data/logs/`.
+## What you need
 
-### 2. Tablet app
-Build it (Android SDK with platform 34, JDK 17):
-```bash
-cd tablet
-./gradlew assembleRelease
-```
-Install `tablet/app/build/outputs/apk/release/app-release.apk` on the tablet (`adb install -r …`), open **Lumen Desk** and set it as the default home app if you like. The tablet finds the PC automatically; approve it on the PC under **Tablet**.
+- A **Windows 10 or 11** PC
+- An **Android tablet** with Android 7 or newer (old tablets are perfect)
+- Both on the **same Wi-Fi** – or connected with a USB cable
+- Optional: **Spotify Premium** for the music controls
 
-> The release build is signed with the debug key for convenience. Use your own key if you distribute it.
+---
 
-### 3. Optional features
-- **Spotify** – in the PC settings open *Spotify* and follow the three steps (create an app, redirect URI `http://127.0.0.1:47801/spotify/callback`, tick *Web API*, paste the Client ID, log in).
-- **Lights** – enable *LAN Control* for each bulb in the Yeelight app, then *Lights → Search for bulbs*.
-- **Second monitor** – install Virtual Display Driver, add your tablet's resolution (e.g. `1280×800`) to `C:\VirtualDisplayDriver\vdd_settings.xml`, set Windows to *Extend these displays* (Win + P), then add a tile with the action *Second monitor*.
-- **USB cable** – enable USB debugging on the tablet and plug it in; the server sets up `adb reverse` by itself.
+## Set it up (about 10 minutes)
 
-## Install with an AI coding agent
+### Step 1 – On your PC
+1. Install **Node.js** (the free *LTS* version) from [nodejs.org](https://nodejs.org).
+2. Download Lumen Desk: on this page click the green **Code** button → **Download ZIP**, and unzip it anywhere (for example into *Documents*).
+3. Open the `pc` folder and **double-click `Setup.cmd`**.
 
-Open this repository in **Claude Code**, **Codex** or a similar agent and say:
+That's it for the PC. Lumen Desk now runs in the background, starts with Windows, and has a **Lumen Desk** icon on your desktop that opens the settings.
+
+> If Windows asks whether Node.js may use the network, click **Allow** (private networks) – the tablet needs it to find your PC.
+
+### Step 2 – On your tablet
+1. Download **`lumen-desk.apk`** from the [Releases](../../releases) page (on the right side of this page) – open the link directly on the tablet, or copy the file over.
+2. Open the file to install it. If Android asks, allow installing apps from this source.
+3. Open **Lumen Desk** on the tablet. It finds your PC by itself.
+
+### Step 3 – Allow the tablet
+On the PC, open the **Lumen Desk** settings → **Tablet** → click **Allow**. You only need to do this once.
+
+Done! 🎉 Now make it yours: in the settings window click a tile to change what it does, drag tiles around, add pages, or pick a color under **Appearance**.
+
+![Appearance settings](docs/screenshots/pc-appearance.jpg)
+
+**Tip:** to make Lumen Desk the tablet's home screen, open the ⚙ settings on the tablet (bottom right of the clock card) → **Set as default launcher**.
+
+---
+
+## Extras (optional)
+
+<details>
+<summary><b>Spotify</b> – control music and browse your library</summary>
+
+1. In the Lumen Desk settings on the PC, open **Spotify**.
+2. Follow the three steps shown there: create a free app at [developer.spotify.com](https://developer.spotify.com/dashboard), paste the redirect address it shows, tick **Web API**, and copy the **Client ID** back.
+3. Click **Log in to Spotify**.
+
+Without this, the play / next / previous buttons still work (as media keys).
+</details>
+
+<details>
+<summary><b>Smart lights</b> (Yeelight)</summary>
+
+1. In the Yeelight app, open each bulb → Settings → turn on **LAN Control**.
+2. In the Lumen Desk settings: **Lights** → **Search for bulbs**.
+3. Click a tile, set *Action* to **Light** and pick the bulb.
+</details>
+
+<details>
+<summary><b>Second monitor</b> – use the tablet as an extra screen</summary>
+
+1. Install the free [Virtual Display Driver](https://github.com/VirtualDrivers/Virtual-Display-Driver/releases) (*VDD.Control* → **Install Driver**). It adds a virtual monitor to Windows.
+2. Download [ffmpeg](https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip), and copy `ffmpeg.exe` (from its `bin` folder) into Lumen Desk's `pc\bin` folder.
+3. Press **Win + P** → **Extend**. In *Settings → Display*, set the new monitor to your tablet's resolution (e.g. 1280 × 800).
+4. In the Lumen Desk settings, add a tile with the action **Second monitor**.
+
+On the tablet: tap = click, drag = drag, hold = right click, two fingers = scroll, **three-finger tap = back** to the panel.
+</details>
+
+<details>
+<summary><b>USB cable</b> – faster and steadier than Wi-Fi, and the tablet charges</summary>
+
+1. On the tablet, enable **Developer options** (tap *Build number* 7× in *Settings → About tablet*) and turn on **USB debugging**.
+2. Download [Android platform-tools](https://developer.android.com/tools/releases/platform-tools) and copy `adb.exe`, `AdbWinApi.dll` and `AdbWinUsbApi.dll` into Lumen Desk's `pc\bin` folder.
+3. Plug the tablet in and accept the *Allow USB debugging* prompt. Lumen Desk switches to the cable by itself.
+</details>
+
+---
+
+## Something doesn't work?
+
+| Problem | Try this |
+|---|---|
+| The tablet keeps *Looking for PC…* | Make sure both are on the same Wi-Fi and Lumen Desk runs on the PC (desktop icon). Allow Node.js in the Windows firewall. Or enter the PC's address manually in the tablet's ⚙ settings. |
+| Spotify shows nothing | Start playing something in Spotify on any device first. |
+| Some playlists show no songs | Spotify only lets apps list songs of playlists *you* created; others can still be played with **Play** / **Shuffle**. |
+| Second monitor is black | Check that Windows shows two displays (Win + P → Extend) and that `ffmpeg.exe` is in `pc\bin`. |
+| Anything else | The settings window → **Tablet** → *Server status* shows a log of errors. |
+
+---
+
+## Install with an AI assistant
+
+Using **Claude Code**, **Codex** or a similar coding agent? Open this folder and say:
 
 > Install Lumen Desk on my PC and tablet by following AGENTS.md.
 
-[`AGENTS.md`](AGENTS.md) describes every step, what to ask you, and what never to do.
+It will walk you through every step and ask before doing anything important.
 
-## How it works
-- HTTP + WebSocket server on port **47801**; the PC announces itself over UDP broadcast on port **47802**, so the tablet finds it without configuration.
-- Settings can only be changed from the PC itself (`127.0.0.1`); new tablets must be approved once.
-- Keyboard, mouse, volume and window focus go through small persistent PowerShell helpers (Win32 / Core Audio), so actions take milliseconds.
-- The second monitor is captured with ffmpeg `ddagrab`, encoded to H.264 (AMD AMF, falls back to libx264) and decoded by the tablet's hardware decoder.
-- Notifications are read (read-only) from the Windows notification database.
+---
+
+## For developers
+
+- `pc/` – Windows server (Node.js 22.5+, no build step). `run.js` supervises `server.js`; libraries in `lib/`, settings UI in `ui/`.
+- `tablet/` – Android app (Kotlin, Jetpack Compose, Android 7.0+). Build with `./gradlew assembleRelease` (JDK 17, Android SDK 34).
+- `shared/icons.json` – icons shared by both.
+
+How it works: HTTP + WebSocket server on port 47801, auto-discovery over UDP broadcast (port 47802), settings only editable from the PC itself, new tablets need approval. Keyboard, mouse, volume and windows are controlled through small PowerShell helpers (Win32 / Core Audio). The second monitor is captured with ffmpeg `ddagrab`, encoded to H.264 and decoded by the tablet's hardware. Notifications are read from the Windows notification database (read-only). Optional env var `LUMEN_PC_NAME` changes the PC name shown on the tablet.
+
+See [AGENTS.md](AGENTS.md) for details.
+
+## Related
+**Lumen TV** – the same look as a launcher for Android TV / Google TV.
 
 ## Credits
-- Fonts: [Inter](https://rsms.me/inter/), [Fraunces](https://github.com/undercasetype/Fraunces), [Outfit](https://github.com/Outfitio/Outfit-Fonts), [Space Grotesk](https://github.com/floriankarsten/space-grotesk) – SIL Open Font License
-- Weather: [Open-Meteo](https://open-meteo.com) · Music: Spotify Web API
-- Not bundled, downloaded by you: ffmpeg (LGPL/GPL), Android platform-tools, Virtual Display Driver
+Fonts: [Inter](https://rsms.me/inter/), [Fraunces](https://github.com/undercasetype/Fraunces), [Outfit](https://github.com/Outfitio/Outfit-Fonts), [Space Grotesk](https://github.com/floriankarsten/space-grotesk) (SIL Open Font License). Weather by [Open-Meteo](https://open-meteo.com). Music via the Spotify Web API. Second monitor uses [Virtual Display Driver](https://github.com/VirtualDrivers/Virtual-Display-Driver) and [ffmpeg](https://ffmpeg.org) – both are installed separately by you and keep their own licenses.
 
 ## License
 [MIT](LICENSE)

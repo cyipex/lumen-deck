@@ -16,7 +16,7 @@ Do the steps in order, check each one before moving on, and tell the user what y
 3. **Optional tools** – ask the user which features they want before downloading anything:
    - Second monitor → ffmpeg (`ffmpeg-release-essentials.zip` from gyan.dev, verify the published SHA-256, copy `ffmpeg.exe` to `pc/bin/`). The user must install Virtual Display Driver themselves (a system driver that needs admin rights) and set Windows to *Extend these displays*.
    - USB connection → Android platform-tools; copy `adb.exe`, `AdbWinApi.dll`, `AdbWinUsbApi.dll` to `pc/bin/`.
-4. **Start the server**: run `pc/install.ps1` (desktop icon + start with Windows) only if the user agrees; otherwise start it with `node run.js` in `pc/`. Confirm `http://127.0.0.1:47801/ping` answers.
+4. **Start the server**: `pc/Setup.cmd` does `npm install` + `install.ps1` (desktop icon + start with Windows) + starts it – run it only if the user agrees; otherwise start it with `node run.js` in `pc/`. Confirm `http://127.0.0.1:47801/ping` answers.
 5. **Build the tablet app**: needs JDK 17 and the Android SDK (platform 34). Create `tablet/local.properties` with `sdk.dir=…` if missing, then `./gradlew assembleRelease` in `tablet/`.
 6. **Install on the tablet**: the user enables Developer options → USB debugging and connects the tablet. Run `adb shell am force-stop com.lumen.desk` **before** every `adb install -r` – otherwise old processes of the app can keep running and fight over the connection (only a reboot clears them).
 7. **Pair**: open the app on the tablet; it shows "Allow the tablet on the PC". The user approves it in the settings window under **Tablet**.
