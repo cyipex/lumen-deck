@@ -9,6 +9,8 @@ This file tells an agent (Claude Code, Codex, …) how to install and work on **
 
 ## Installing for a user
 
+The easy way for most users: `LumenDeskSetup.exe` from the GitHub Releases (PC) + `lumen-desk.apk` (tablet). Use the steps below when installing from source.
+
 Do the steps in order, check each one before moving on, and tell the user what you are doing.
 
 1. **Check the PC**: Windows 10/11 and `node --version` ≥ 22.5. If Node is missing or older, ask the user to install it from nodejs.org (do not install it silently).
@@ -33,5 +35,6 @@ Do the steps in order, check each one before moving on, and tell the user what y
 - Server: `node --check` every changed file; restart by killing the process on port 47801 – the supervisor (`run.js`) starts it again within a second.
 - Settings UI: plain JS, no framework; saves are sent as path/value patches (`PATCH /api/config`), so never replace the whole config.
 - Tablet: the layout is designed for 1280×800 and scaled (`.u` / `.us` units in `Style.kt`). Android 7 has no variable fonts, so static font files are bundled.
+- Installer: `npm run installer` in `pc/` (needs Inno Setup 6). In the packaged exe `lib/paths.js` puts data and tools in `%APPDATA%\Lumen Desk`; never write next to the exe (Program Files is read-only).
 - Second monitor: the tablet's hardware decoder needs a constant frame stream; do not enable ffmpeg `dup_frames=0`.
 - Keep comments and UI text in English.

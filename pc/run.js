@@ -4,7 +4,9 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const LOG_DIR = path.join(__dirname, 'data', 'logs');
+const paths = require('./lib/paths');
+
+const LOG_DIR = path.join(paths.DATA, 'logs');
 const LOG = path.join(LOG_DIR, 'server.log');
 fs.mkdirSync(LOG_DIR, { recursive: true });
 
@@ -29,8 +31,10 @@ function pipe(stream, prefix) {
 let crashes = [];
 
 function start() {
-  const p = spawn(process.execPath, [path.join(__dirname, 'server.js')], {
-    cwd: __dirname,
+  // Installed: the same exe with --server; from the repository: node server.js.
+  const args = paths.packaged ? ['--server'] : [path.join(__dirname, 'server.js')];
+  const p = spawn(process.execPath, args, {
+    cwd: paths.APP,
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
     env: { ...process.env, LC_SUPERVISED: '1' }

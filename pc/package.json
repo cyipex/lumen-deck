@@ -5,9 +5,15 @@
   "description": "PC part of Lumen Desk: server for the tablet, macros, Spotify and lights",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node run.js",
+    "installer": "node installer/build.js"
   },
   "dependencies": {
     "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.2",
+    "postject": "^1.0.0-alpha.6",
+    "rcedit": "^4.0.1"
   }
 }

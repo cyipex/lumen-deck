@@ -6,7 +6,8 @@ const fs = require('fs');
 const path = require('path');
 const input = require('./input');
 
-const FFMPEG = path.join(__dirname, '..', 'bin', 'ffmpeg.exe');
+const paths = require('./paths');
+const FFMPEG = path.join(paths.BIN, 'ffmpeg.exe');
 
 // Monitors in physical pixels (the process must be DPI aware, otherwise Windows returns scaled numbers).
 const SCREENS_PS = `
@@ -46,7 +47,7 @@ function probe(idx) {
 let target = null; // { screen, idx, desk }
 
 async function findTarget() {
-  if (!fs.existsSync(FFMPEG)) throw new Error('ffmpeg is missing (pc/bin/ffmpeg.exe)');
+  if (!fs.existsSync(FFMPEG)) throw new Error('ffmpeg is not installed yet. On the PC open Lumen Desk → Tablet → Extras and install it.');
   const list = await screens();
   const others = list.filter((s) => !s.primary);
   if (!others.length) throw new Error('Virtual monitor not found. Install Virtual Display Driver and set Windows to Extend these displays.');
@@ -122,7 +123,7 @@ function startStream(ws, amf = true) {
   const proc = spawn(FFMPEG, encoderArgs(amf, usb), { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
   const v = { ws, proc, amf, frames: 0, dropping: false, err: '' };
   viewer = v;
-  if (fs.existsSync(path.join(__dirname, '..', 'data', 'pinglog'))) {
+  if (fs.existsSync(path.join(paths.DATA, 'pinglog'))) {
     console.log('display: start', amf ? 'amf' : 'x264', usb ? 'usb' : 'wifi');
     v.dbg = setInterval(() => console.log('display: NAL', v.frames, 'buffered', ws.bufferedAmount, 'dropping', v.dropping, 'err', v.err.slice(-200)), 3000);
   }

@@ -17,6 +17,7 @@ const audio = require('./lib/audio');
 const display = require('./lib/display');
 const browsers = require('./lib/browsers');
 const usb = require('./lib/usb');
+const tools = require('./lib/tools');
 const notify = require('./lib/notify');
 
 // App names for notifications (same IDs as in the Start menu).
@@ -25,6 +26,8 @@ picker.apps().then((l) => { startApps = l; }, () => {});
 
 // Unexpected error: log it and exit with code 1, the supervisor (run.js) starts the server again.
 process.on('uncaughtException', (e) => {
+  // Port already taken = Lumen Desk already runs: quietly stop (exit code 0 stops the supervisor too).
+  if (e && e.code === 'EADDRINUSE') process.exit(0);
   console.error('Unexpected error:', e && e.stack ? e.stack : e);
   process.exit(1);
 });
@@ -36,8 +39,9 @@ process.on('unhandledRejection', (e) => {
 const PC_NAME = process.env.LUMEN_PC_NAME || os.hostname();
 const PORT = 47801;
 const BEACON_PORT = 47802;
-const UI_DIR = path.join(__dirname, 'ui');
-const ICONS_FILE = path.join(__dirname, '..', 'shared', 'icons.json');
+const paths = require('./lib/paths');
+const UI_DIR = paths.UI;
+const ICONS_FILE = paths.ICONS;
 
 config.load();
 spotify.init({ dataDir: config.DATA_DIR, redirectUri: `http://127.0.0.1:${PORT}/spotify/callback` });
@@ -242,6 +246,12 @@ const routes = {
     const file = path.join(config.DATA_DIR, 'logs', 'server.log');
     const lines = fs.existsSync(file) ? fs.readFileSync(file, 'utf8').split('\n').filter(Boolean) : [];
     return { lines: lines.slice(-80), supervised: !!process.env.LC_SUPERVISED, uptime: Math.round(process.uptime()) };
+  },
+  'GET /api/tools': () => tools.status(),
+  'POST /api/tools/install': async (req) => {
+    const { tool } = await readBody(req);
+    // adb right after installing: start watching for a tablet on the USB cable.
+    return tools.install(String(tool), (name) => { if (name === 'adb') usb.start(PORT); });
   },
   'GET /api/notify/apps': () => notify.knownApps(),
   'GET /api/icons': () => JSON.parse(fs.readFileSync(ICONS_FILE, 'utf8')),

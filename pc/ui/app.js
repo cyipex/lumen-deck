@@ -652,6 +652,37 @@ async function renderLog() {
 }
 $('#reloadLog').onclick = renderLog;
 
+const TOOL_INFO = {
+  ffmpeg: ['Second monitor', 'ffmpeg – captures the PC screen for the tablet (about 115 MB)'],
+  adb: ['USB cable', 'adb – lets the tablet connect over a USB cable (about 8 MB)']
+};
+let toolTimer = null;
+
+async function renderTools() {
+  clearTimeout(toolTimer);
+  try {
+    const st = await api('GET', '/api/tools');
+    let busy = false;
+    $('#toolList').innerHTML = Object.entries(TOOL_INFO).map(([id, [name, desc]]) => {
+      const s = st[id] || {};
+      let right;
+      if (s.installed) right = '<span class="muted">Installed ✓</span>';
+      else if (s.state === 'downloading') {
+        busy = true;
+        right = `<span class="muted">Downloading ${s.total ? Math.round((s.got / s.total) * 100) + ' %' : '…'}</span>`;
+      } else if (s.state === 'unpacking') { busy = true; right = '<span class="muted">Unpacking…</span>'; }
+      else right = `<button class="btn small primary" data-tool="${id}">${s.state === 'error' ? 'Try again' : 'Install'}</button>`;
+      return `<div class="item"><div class="grow">${name}<small>${esc(s.state === 'error' ? s.error : desc)}</small></div>${right}</div>`;
+    }).join('');
+    if (busy) toolTimer = setTimeout(renderTools, 1000);
+  } catch (e) { toast(e.message); }
+}
+$('#toolList').onclick = async (e) => {
+  const id = e.target.dataset.tool;
+  if (!id) return;
+  try { await api('POST', '/api/tools/install', { tool: id }); renderTools(); } catch (err) { toast(err.message); }
+};
+
 async function renderNotify() {
   $('#notifyOn').checked = cfg.notify.enabled;
   try {
@@ -693,7 +724,7 @@ function showView() {
   if (v === 'look') renderLook();
   if (v === 'lights') renderLights();
   if (v === 'spotify') renderSpotify();
-  if (v === 'tablet') { renderTablet(); renderLog(); renderNotify(); }
+  if (v === 'tablet') { renderTablet(); renderLog(); renderNotify(); renderTools(); }
 }
 window.addEventListener('hashchange', showView);
 

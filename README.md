@@ -51,16 +51,15 @@ See the time and weather, control Spotify, change the volume of every app, switc
 
 ---
 
-## Set it up (about 10 minutes)
+## Set it up (about 5 minutes)
 
 ### Step 1 – On your PC
-1. Install **Node.js** (the free *LTS* version) from [nodejs.org](https://nodejs.org).
-2. Download Lumen Desk: on this page click the green **Code** button → **Download ZIP**, and unzip it anywhere (for example into *Documents*).
-3. Open the `pc` folder and **double-click `Setup.cmd`**.
+1. Download **`LumenDeskSetup.exe`** from the [Releases](../../releases) page (on the right side of this page).
+2. Run it and click **Next → Install → Finish**.
 
-That's it for the PC. Lumen Desk now runs in the background, starts with Windows, and has a **Lumen Desk** icon on your desktop that opens the settings.
+That's it for the PC. Lumen Desk runs in the background, starts with Windows, and the **Lumen Desk** icon on your desktop opens the settings. Uninstall it any time in *Windows Settings → Apps*.
 
-> If Windows asks whether Node.js may use the network, click **Allow** (private networks) – the tablet needs it to find your PC.
+> **"Windows protected your PC"?** The installer is not code-signed (that costs money for a free project), so Windows warns about it the first time. Click **More info → Run anyway**.
 
 ### Step 2 – On your tablet
 1. Download **`lumen-desk.apk`** from the [Releases](../../releases) page (on the right side of this page) – open the link directly on the tablet, or copy the file over.
@@ -102,7 +101,7 @@ Without this, the play / next / previous buttons still work (as media keys).
 <summary><b>Second monitor</b> – use the tablet as an extra screen</summary>
 
 1. Install the free [Virtual Display Driver](https://github.com/VirtualDrivers/Virtual-Display-Driver/releases) (*VDD.Control* → **Install Driver**). It adds a virtual monitor to Windows.
-2. Download [ffmpeg](https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip), and copy `ffmpeg.exe` (from its `bin` folder) into Lumen Desk's `pc\bin` folder.
+2. In the Lumen Desk settings open **Tablet → Extras** and click **Install** next to *Second monitor* (it downloads ffmpeg for you).
 3. Press **Win + P** → **Extend**. In *Settings → Display*, set the new monitor to your tablet's resolution (e.g. 1280 × 800).
 4. In the Lumen Desk settings, add a tile with the action **Second monitor**.
 
@@ -113,7 +112,7 @@ On the tablet: tap = click, drag = drag, hold = right click, two fingers = scrol
 <summary><b>USB cable</b> – faster and steadier than Wi-Fi, and the tablet charges</summary>
 
 1. On the tablet, enable **Developer options** (tap *Build number* 7× in *Settings → About tablet*) and turn on **USB debugging**.
-2. Download [Android platform-tools](https://developer.android.com/tools/releases/platform-tools) and copy `adb.exe`, `AdbWinApi.dll` and `AdbWinUsbApi.dll` into Lumen Desk's `pc\bin` folder.
+2. In the Lumen Desk settings open **Tablet → Extras** and click **Install** next to *USB cable* (it downloads Google's adb tool for you).
 3. Plug the tablet in and accept the *Allow USB debugging* prompt. Lumen Desk switches to the cable by itself.
 </details>
 
@@ -123,10 +122,10 @@ On the tablet: tap = click, drag = drag, hold = right click, two fingers = scrol
 
 | Problem | Try this |
 |---|---|
-| The tablet keeps *Looking for PC…* | Make sure both are on the same Wi-Fi and Lumen Desk runs on the PC (desktop icon). Allow Node.js in the Windows firewall. Or enter the PC's address manually in the tablet's ⚙ settings. |
+| The tablet keeps *Looking for PC…* | Make sure both are on the same Wi-Fi and Lumen Desk runs on the PC (desktop icon). Or enter the PC's address manually in the tablet's ⚙ settings. |
 | Spotify shows nothing | Start playing something in Spotify on any device first. |
 | Some playlists show no songs | Spotify only lets apps list songs of playlists *you* created; others can still be played with **Play** / **Shuffle**. |
-| Second monitor is black | Check that Windows shows two displays (Win + P → Extend) and that `ffmpeg.exe` is in `pc\bin`. |
+| Second monitor is black | Check that Windows shows two displays (Win + P → Extend) and that *Second monitor* shows **Installed** in **Tablet → Extras**. |
 | Anything else | The settings window → **Tablet** → *Server status* shows a log of errors. |
 
 ---
@@ -143,7 +142,8 @@ It will walk you through every step and ask before doing anything important.
 
 ## For developers
 
-- `pc/` – Windows server (Node.js 22.5+, no build step). `run.js` supervises `server.js`; libraries in `lib/`, settings UI in `ui/`.
+- `pc/` – Windows server (Node.js 22.5+, no build step). `run.js` supervises `server.js`; libraries in `lib/`, settings UI in `ui/`. Run it from source with `pc/Setup.cmd` or `npm start`.
+- `pc/installer/` – builds `LumenDeskSetup.exe` (`npm run installer`): the server is bundled with esbuild, packed with Node.js into one exe (Node single executable application) and wrapped with [Inno Setup](https://jrsoftware.org/isinfo.php). When installed, user data lives in `%APPDATA%\Lumen Desk`.
 - `tablet/` – Android app (Kotlin, Jetpack Compose, Android 7.0+). Build with `./gradlew assembleRelease` (JDK 17, Android SDK 34).
 - `shared/icons.json` – icons shared by both.
 

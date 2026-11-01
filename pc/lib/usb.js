@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { EventEmitter } = require('events');
 
-const ADB = path.join(__dirname, '..', 'bin', 'adb.exe');
+const ADB = path.join(require('./paths').BIN, 'adb.exe');
 const events = new EventEmitter();
 
 let port = 47801;
