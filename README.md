@@ -4,7 +4,22 @@
 
 See the time and weather, control Spotify, change the volume of every app, switch your lights, run shortcuts with one tap – or use the tablet as a **second monitor**. Everything is set up from a simple window on your PC.
 
-![Settings window on the PC](docs/screenshots/pc-tiles.jpg)
+![Lumen Desk on a tablet](docs/screenshots/tablet-home-emerald.jpg)
+
+<table>
+  <tr>
+    <td><img src="docs/screenshots/tablet-home-ocean.jpg" alt="Ocean color with the Space Grotesk clock"></td>
+    <td><img src="docs/screenshots/tablet-home-amber.jpg" alt="Amber color with the Outfit clock"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/tablet-mixer.jpg" alt="Volume mixer: one slider per app"></td>
+    <td><img src="docs/screenshots/tablet-settings.jpg" alt="Settings on the tablet"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Pick a color and a clock font</sub></td>
+    <td align="center"><sub>…right on the tablet or on the PC</sub></td>
+  </tr>
+</table>
 
 ---
 
@@ -21,7 +36,9 @@ See the time and weather, control Spotify, change the volume of every app, switc
 | 🔔 **Notifications** | Messages from Discord, WhatsApp and other apps pop up on the tablet. |
 | 🎨 **Your style** | 10 background colors, 3 clock fonts, multiple pages and layouts. |
 
-![Volume mixer page](docs/screenshots/pc-mixer.jpg)
+**Everything is set up on your PC** – click a tile to choose what it does, drag tiles around, add pages:
+
+![Settings window on the PC](docs/screenshots/pc-tiles.jpg)
 
 ---
 
