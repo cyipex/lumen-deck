@@ -64,8 +64,8 @@ fun DisplayScreen(link: Link, onExit: () -> Unit) {
     }
     // With the second monitor the screen never dims, even when nobody touches it for a long time.
     androidx.compose.runtime.DisposableEffect(Unit) {
-        Hub.keepBright = true
-        onDispose { Hub.keepBright = false }
+        Hub.awake(true)
+        onDispose { Hub.awake(false) }
     }
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
@@ -134,18 +134,26 @@ class VideoStream(private val link: Link, private val surface: Surface, private 
     // An outage (server restart, Wi-Fi) is not an error: we reconnect in a moment.
     private fun connect() {
         if (!running) return
-        val url = link.displayUrl() ?: return reconnect()
+        link.displayTicket { url, key ->
+            if (url == null || key == null || !running) reconnect() else open(url, key)
+        }
+    }
+
+    // Everything on the video connection is encrypted with the ticket's key; JSON messages start with "{".
+    private fun open(url: String, key: ByteArray) {
+        val session = Secure.Session(null, key)
         socket = link.http.newWebSocket(Request.Builder().url(url).build(), object : WebSocketListener() {
             override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
-                if (!queue.offer(bytes.toByteArray())) queue.clear()
-            }
-
-            override fun onMessage(webSocket: WebSocket, text: String) {
-                val m = runCatching { JSONObject(text) }.getOrNull() ?: return
-                if (m.optString("t") == "error") {
-                    fatal = true
-                    fail(m.optString("text"))
+                val data = runCatching { session.open(bytes.toByteArray()) }.getOrNull() ?: return webSocket.cancel()
+                if (data.isNotEmpty() && data[0] == '{'.code.toByte()) {
+                    val m = runCatching { JSONObject(String(data)) }.getOrNull() ?: return
+                    if (m.optString("t") == "error") {
+                        fatal = true
+                        fail(m.optString("text"))
+                    }
+                    return
                 }
+                if (!queue.offer(data)) queue.clear()
             }
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) = dropped(webSocket)

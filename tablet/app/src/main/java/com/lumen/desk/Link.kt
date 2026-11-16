@@ -12,6 +12,7 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
+import okio.ByteString
 import org.json.JSONObject
 import java.net.DatagramPacket
 import java.net.DatagramSocket
@@ -22,13 +23,18 @@ import java.util.concurrent.TimeUnit
 sealed interface Status {
     data object Searching : Status
     data class Connecting(val host: String) : Status
-    data class Pending(val pc: String) : Status
+    /** Waiting for Allow on the PC. [code] must match the one the PC shows; [known]: this tablet was paired before. */
+    data class Pending(val pc: String, val code: String, val known: Boolean) : Status
     data class Connected(val pc: String) : Status
+    /** The PC refused this tablet's pairing key (it was paired again elsewhere, or removed): pair again. */
+    data class Refused(val pc: String) : Status
 }
 
 /**
  * Connection to the PC. The PC announces its address over UDP (port 47802), the tablet connects
  * over WebSocket and keeps the connection; after an outage it reconnects by itself.
+ * Everything after the first key exchange is encrypted (Secure.kt); the PC trusts the tablet only through
+ * the pairing key it gave it when the user allowed it, never through the tablet's id alone.
  */
 class Link(context: Context) {
     private val prefs = context.getSharedPreferences("link", Context.MODE_PRIVATE)
@@ -40,7 +46,11 @@ class Link(context: Context) {
         .build()
 
     val status = MutableStateFlow<Status>(Status.Searching)
-    val config = MutableStateFlow(prefs.getString("config", null)?.let { runCatching { parseConfig(JSONObject(it)) }.getOrNull() })
+    // The layout of the PC used last; each PC has its own (a second PC must never replace the first one's).
+    val config = MutableStateFlow(
+        (prefs.getString("lastPc", null)?.let { prefs.getString("config:$it", null) } ?: prefs.getString("config", null))
+            ?.let { runCatching { parseConfig(JSONObject(it)) }.getOrNull() }
+    )
     val live = MutableStateFlow(LiveState())
     val toasts = MutableSharedFlow<String>(extraBufferCapacity = 4)
     val notices = MutableSharedFlow<Notice>(extraBufferCapacity = 8)
@@ -48,6 +58,27 @@ class Link(context: Context) {
     private val deviceId = prefs.getString("deviceId", null) ?: UUID.randomUUID().toString().also {
         prefs.edit().putString("deviceId", it).apply()
     }
+
+    // ---------- pairing keys, one per PC ----------
+    // Each PC that allowed this tablet made its own secret; they are kept by the PC's id, so pairing with a
+    // second PC never destroys the first pairing. "pairKey" is a key from before PCs had ids: it belongs to
+    // whichever PC accepts it first and is then filed under that PC's id.
+
+    private fun dec(s: String) = runCatching { android.util.Base64.decode(s, android.util.Base64.NO_WRAP) }.getOrNull()
+    private fun enc(b: ByteArray) = android.util.Base64.encodeToString(b, android.util.Base64.NO_WRAP)
+    private fun keys() = runCatching { JSONObject(prefs.getString("keys", "{}") ?: "{}") }.getOrDefault(JSONObject())
+    private fun keyFor(pc: String?) = pc?.let { keys().optString(it) }?.takeIf { it.isNotEmpty() }?.let(::dec)
+    private val legacyKey get() = prefs.getString("pairKey", null)?.let(::dec)
+
+    private fun saveKey(pc: String, key: ByteArray?) {
+        val k = keys()
+        if (key == null) k.remove(pc) else k.put(pc, enc(key))
+        prefs.edit().putString("keys", k.toString()).apply()
+    }
+
+    @Volatile private var serverPc: String? = null
+    @Volatile private var usedLegacy = false
+    @Volatile private var refused: String? = null
 
     var manualHost: String?
         get() = prefs.getString("manualHost", null)
@@ -57,20 +88,37 @@ class Link(context: Context) {
         }
 
     @Volatile private var discovered: String? = prefs.getString("lastHost", null)
+    // PCs heard on the network: id -> (address, when). The PC used last is preferred, so the tablet
+    // never hops to another PC just because that one announced itself more recently.
+    private val heard = java.util.concurrent.ConcurrentHashMap<String, Pair<String, Long>>()
     @Volatile private var socket: WebSocket? = null
+    @Volatile private var session: Secure.Session? = null
+    private var pairCode = ""
     @Volatile private var running = false
     private var connectedHost: String? = null
+
+    /** For the connection card: the PC address in use (or being tried) and the last one the PC announced. */
+    val currentHost get() = connectedHost
+    val announcedHost get() = discovered
+    val isManual get() = manualHost != null
     private var discovery: Thread? = null
     @Volatile private var usb = false
 
     /** The connection goes over the USB cable (adb reverse), not Wi-Fi. */
     val viaUsb = MutableStateFlow(false)
+
+    /** The monitor the drawing tablet draws on (answer to drawScreen). */
+    val drawScreen = MutableStateFlow<DrawScreen?>(null)
     private var multicastLock: WifiManager.MulticastLock? = null
+    private var wifiLock: WifiManager.WifiLock? = null
 
     fun start() {
         if (running) return
         running = true
         multicastLock = wifi.createMulticastLock("lumen").apply { setReferenceCounted(false) }
+        // Without this, Wi-Fi power saving delays or drops packets (Huawei especially): late taps and lost connections.
+        @Suppress("DEPRECATION")
+        wifiLock = wifi.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "lumen").apply { setReferenceCounted(false); acquire() }
         searching(true)
         discovery = Thread(::listenForBeacons, "beacon").apply { isDaemon = true; start() }
         Thread(::watchUsb, "usb").apply { isDaemon = true; start() }
@@ -81,6 +129,7 @@ class Link(context: Context) {
 
     fun stop() {
         running = false
+        wifiLock?.let { if (it.isHeld) it.release() }
         socket?.close(1000, null)
         socket = null
         searching(false)
@@ -105,6 +154,8 @@ class Link(context: Context) {
      */
     private fun watchUsb() {
         var first = true
+        var fails = 0
+        var wins = 0
         while (running) {
             val ok = runCatching {
                 java.net.Socket().use { s ->
@@ -114,12 +165,22 @@ class Link(context: Context) {
                     s.getInputStream().bufferedReader().readLine()?.startsWith("HTTP/1") == true
                 }
             }.getOrDefault(false)
-            if (ok != usb || first) {
+            // One slow answer (PC busy, e.g. encoding video) must not drop a working cable connection:
+            // switching needs two answers in a row, and a live connection over the cable is never dropped by the check.
+            if (ok) { wins++; fails = 0 } else { fails++; wins = 0 }
+            val liveOnUsb = usb && socket != null && status.value is Status.Connected
+            val change = when {
+                first -> true
+                ok && !usb -> wins >= 2
+                !ok && usb -> fails >= 2 && !liveOnUsb
+                else -> false
+            }
+            if (change) {
                 usb = ok
                 if (manualHost == null || first) reconnectSoon(0)
                 first = false
             }
-            Thread.sleep(3000)
+            Thread.sleep(2000)
         }
     }
 
@@ -137,10 +198,15 @@ class Link(context: Context) {
                         val j = runCatching { JSONObject(String(p.data, 0, p.length)) }.getOrNull() ?: continue
                         if (j.optString("app") != "lumen-desk") continue
                         val host = "${p.address.hostAddress}:${j.optInt("port", 47801)}"
-                        if (host != discovered) {
-                            discovered = host
-                            prefs.edit().putString("lastHost", host).apply()
-                            if (manualHost == null && !usb && host != connectedHost) reconnectSoon(0)
+                        val now = System.currentTimeMillis()
+                        heard[j.optString("id").ifEmpty { host }] = host to now
+                        val mine = prefs.getString("lastPc", null)?.let { heard[it] }?.takeIf { now - it.second < 15_000 }?.first
+                        val pick = mine ?: heard.values.filter { now - it.second < 15_000 }.maxByOrNull { it.second }?.first ?: host
+                        if (pick != discovered) {
+                            discovered = pick
+                            prefs.edit().putString("lastHost", pick).apply()
+                            val busy = status.value is Status.Connected || status.value is Status.Pending
+                            if (manualHost == null && !usb && pick != connectedHost && !busy) reconnectSoon(0)
                         }
                     }
                 }
@@ -155,6 +221,19 @@ class Link(context: Context) {
         main.post { reconnectSoon(0) }
     }
 
+    /**
+     * The PC refused our key: forget it for that PC and connect again, so the PC shows this tablet with a code
+     * to allow. Keys for other PCs stay.
+     */
+    fun pairAgain() {
+        main.post {
+            val pc = serverPc ?: prefs.getString("lastPc", null)
+            if (pc != null) saveKey(pc, null)
+            prefs.edit().remove("pairKey").apply()
+            reconnectSoon(0)
+        }
+    }
+
     private fun reconnectSoon(delayMs: Long) {
         main.removeCallbacks(connectRunnable)
         main.postDelayed(connectRunnable, delayMs)
@@ -166,6 +245,9 @@ class Link(context: Context) {
         if (!running) return
         socket?.cancel()
         socket = null
+        session = null
+        serverPc = null
+        usedLegacy = false
         val host = target()
         if (host == null) {
             status.value = Status.Searching
@@ -176,14 +258,65 @@ class Link(context: Context) {
         connectedHost = host
         viaUsb.value = host == USB_HOST
         val req = Request.Builder().url("ws://$host/ws").build()
+        val hs = Secure.Handshake(deviceId)
+        val b64 = { b: ByteArray -> android.util.Base64.encodeToString(b, android.util.Base64.NO_WRAP) }
         socket = http.newWebSocket(req, object : WebSocketListener() {
             override fun onOpen(ws: WebSocket, response: Response) {
-                ws.send(JSONObject().put("t", "hello").put("deviceId", deviceId).put("name", "${Build.MANUFACTURER} ${Build.MODEL}").toString())
+                ws.send(
+                    JSONObject().put("t", "hello2").put("deviceId", deviceId).put("name", "${Build.MANUFACTURER} ${Build.MODEL}")
+                        .put("epk", b64(hs.publicKey)).put("cn", b64(hs.nonce))
+                        // Which PCs we hold keys for (their ids are not secret); "paired" is for PCs from before ids.
+                        .put("pcs", org.json.JSONArray(keys().keys().asSequence().toList()))
+                        .put("legacy", legacyKey != null)
+                        .put("paired", keys().length() > 0 || legacyKey != null).toString()
+                )
             }
 
+            // Only the PC's half of the key exchange comes unencrypted.
             override fun onMessage(ws: WebSocket, text: String) {
                 if (ws !== socket) return
-                runCatching { handle(JSONObject(text)) }
+                if (session != null) return ws.cancel()
+                val ok = runCatching {
+                    val m = JSONObject(text)
+                    require(m.optString("t") == "hello2")
+                    serverPc = m.optString("pcId").ifEmpty { null }
+                    refused = m.optString("pc")
+                    val own = keyFor(serverPc)
+                    val key = own ?: legacyKey
+                    usedLegacy = own == null && key != null
+                    // The PC uses the pairing key only if it still knows this tablet; otherwise we must be approved again.
+                    val paired = m.optString("mode") == "paired"
+                    require(!paired || key != null)
+                    val dec = { s: String -> android.util.Base64.decode(s, android.util.Base64.NO_WRAP) }
+                    val r = hs.finish(dec(m.getString("spk")), dec(m.getString("sn")), if (paired) key else null)
+                    pairCode = r.code
+                    session = r.session
+                    // The first encrypted message proves to the PC that we have the key.
+                    send(JSONObject().put("t", "ready"))
+                }.isSuccess
+                if (!ok) ws.cancel()
+            }
+
+            override fun onMessage(ws: WebSocket, bytes: ByteString) {
+                if (ws !== socket) return
+                val s = session ?: return ws.cancel()
+                // A message we cannot open was not made by our PC: drop the connection.
+                val m = runCatching { JSONObject(String(s.open(bytes.toByteArray()))) }.getOrNull() ?: return ws.cancel()
+                runCatching { handle(m) }
+            }
+
+            // 4401: the PC does not accept our key. Retrying every second would only fill its log; ask the user instead.
+            override fun onClosing(ws: WebSocket, code: Int, reason: String) {
+                if (ws !== socket) return
+                if (code == 4401) {
+                    socket = null
+                    session = null
+                    connectedHost = null
+                    status.value = Status.Refused(refused ?: "")
+                    reconnectSoon(30_000)
+                    return
+                }
+                ws.close(1000, null)
             }
 
             override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) = dropped(ws)
@@ -194,6 +327,7 @@ class Link(context: Context) {
     private fun dropped(ws: WebSocket) {
         if (ws !== socket) return
         socket = null
+        session = null
         connectedHost = null
         status.value = Status.Searching
         searching(true)
@@ -203,13 +337,38 @@ class Link(context: Context) {
     private fun handle(m: JSONObject) {
         when (m.optString("t")) {
             "pair" -> {
-                status.value = if (m.optString("status") == "ok") Status.Connected(live.value.pc) else Status.Pending(m.optString("pc"))
-                if (status.value is Status.Connected) searching(false)
+                val pc = serverPc
+                if (m.optString("status") == "ok") {
+                    // The key comes once, when the user pressed Allow on the PC; it is filed under that PC.
+                    val fresh = m.optString("key").takeIf { it.isNotEmpty() }?.let(::dec)
+                    if (pc != null) {
+                        if (fresh != null) saveKey(pc, fresh)
+                        else if (usedLegacy) legacyKey?.let { saveKey(pc, it) }
+                        if (fresh != null || usedLegacy) prefs.edit().remove("pairKey").apply()
+                        if (prefs.getString("lastPc", null) != pc) {
+                            prefs.edit().putString("lastPc", pc).apply()
+                            // This PC's own layout right away (the PC sends the current one in a moment).
+                            prefs.getString("config:$pc", null)?.let { runCatching { config.value = parseConfig(JSONObject(it)) } }
+                        }
+                    } else if (fresh != null) {
+                        prefs.edit().putString("pairKey", enc(fresh)).apply()
+                    }
+                    status.value = Status.Connected(live.value.pc)
+                    searching(false)
+                } else {
+                    // The code is our own result of the key exchange, not a number the other side sent.
+                    status.value = Status.Pending(m.optString("pc"), pairCode, known = keyFor(pc) != null || legacyKey != null)
+                }
             }
             "config" -> {
                 val c = m.getJSONObject("config")
-                config.value = parseConfig(c)
-                prefs.edit().putString("config", c.toString()).apply()
+                val parsed = parseConfig(c)
+                config.value = parsed
+                // The photo and uploaded fonts this layout uses, if the tablet does not have them yet.
+                listOfNotNull(parsed.saver.photo, parsed.theme.clockFont, parsed.saver.font)
+                    .map { it.removePrefix("custom:") }.filter { Regex("[a-f0-9]{32}").matches(it) }
+                    .forEach { id -> Assets.want(id) { send(JSONObject().put("t", "asset").put("id", id).put("req", 0)) } }
+                prefs.edit().putString(serverPc?.let { "config:$it" } ?: "config", c.toString()).apply()
             }
             "state" -> {
                 val stats = m.optJSONObject("stats")
@@ -221,6 +380,7 @@ class Link(context: Context) {
                     cpu = stats?.optInt("cpu"),
                     ram = stats?.optInt("ram"),
                     weather = parseWeather(m.optJSONObject("weather")),
+                    claude = parseClaude(m.optJSONObject("claude")),
                     tiles = parseTileStates(m.optJSONObject("tiles")),
                     pc = m.optString("pc")
                 )
@@ -233,11 +393,19 @@ class Link(context: Context) {
             }
             "toast" -> toasts.tryEmit(m.optString("text"))
             "notify" -> notices.tryEmit(Notice(m.optLong("id"), m.optString("app"), m.optString("title"), m.optString("body")))
-            "lib" -> libWaiting.remove(m.optInt("req"))?.let { cb -> main.post { cb(m) } }
+            "lib", "display" -> libWaiting.remove(m.optInt("req"))?.let { cb -> main.post { cb(m) } }
+            "asset" -> Assets.piece(m)
+            // "Show it on the tablet now" in the PC settings.
+            "saver" -> Hub.saver.value = true
+            "drawscreen" -> drawScreen.value = DrawScreen(m.optInt("i"), m.optInt("n", 1), m.optInt("w", 16), m.optInt("h", 9))
         }
     }
 
-    private fun send(o: JSONObject): Boolean = socket?.send(o.toString()) ?: false
+    private fun send(o: JSONObject): Boolean {
+        val ws = socket ?: return false
+        val s = session ?: return false
+        return s.seal(o.toString().toByteArray()) { ws.send(ByteString.of(*it)) }
+    }
 
     fun tap(tile: Tile) {
         // Instant feedback: the tile switches right away, the PC then sends the real state.
@@ -287,12 +455,58 @@ class Link(context: Context) {
         if (!send(JSONObject().put("t", "set").put("ops", org.json.JSONArray().put(op)))) toasts.tryEmit("PC is not connected")
     }
 
-    /** Connection address for the second-monitor video. */
-    fun displayUrl(): String? = connectedHost?.takeIf { status.value is Status.Connected }?.let { "ws://$it/ws?role=display&device=$deviceId" }
+    /**
+     * The second-monitor video: asks the PC for a one-time ticket and the video's key (over the encrypted connection),
+     * then [onReady] gets the address and the key; null when the PC is not connected.
+     */
+    fun displayTicket(onReady: (String?, ByteArray?) -> Unit) {
+        val host = connectedHost?.takeIf { status.value is Status.Connected } ?: return onReady(null, null)
+        val id = libIds.incrementAndGet()
+        libWaiting[id] = { m ->
+            val token = m.optString("token")
+            val key = runCatching { android.util.Base64.decode(m.optString("key"), android.util.Base64.NO_WRAP) }.getOrNull()
+            if (token.isEmpty() || key == null || key.size != 32) onReady(null, null)
+            else onReady("ws://$host/ws?role=display&token=$token", key)
+        }
+        if (!send(JSONObject().put("t", "display").put("req", id))) {
+            libWaiting.remove(id)
+            onReady(null, null)
+        }
+    }
 
     /** A touch on the second monitor; x, y are 0..1. */
     fun pointer(a: String, x: Float, y: Float, d: Int = 0) {
         send(JSONObject().put("t", "ptr").put("a", a).put("x", x.toDouble()).put("y", y.toDouble()).put("d", d))
+    }
+
+    /** Touchpad: relative movement in PC pixels, mouse buttons ("left", "right", "middle") and scrolling (120 = one notch). */
+    fun pad(a: String, dx: Int = 0, dy: Int = 0, b: String = "left") {
+        send(JSONObject().put("t", "pad").put("a", a).put("dx", dx).put("dy", dy).put("b", b))
+    }
+
+    /** One key on the PC (e.g. "enter", "f5", "c") with the modifiers pressed just for it. */
+    fun key(k: String, mods: List<String> = emptyList()) {
+        if (!send(JSONObject().put("t", "key").put("k", k).put("mods", org.json.JSONArray(mods)))) toasts.tryEmit("PC is not connected")
+    }
+
+    /** Text typed as characters, so the PC's keyboard layout does not matter. */
+    fun type(text: String) {
+        if (!send(JSONObject().put("t", "type").put("text", text))) toasts.tryEmit("PC is not connected")
+    }
+
+    /** A modifier (ctrl, shift, alt, win) that stays pressed on the PC until released. */
+    fun hold(k: String, down: Boolean) {
+        send(JSONObject().put("t", "hold").put("k", k).put("down", down))
+    }
+
+    /** Drawing tablet: picks monitor number [i]; the PC answers with its size. */
+    fun drawOn(i: Int) {
+        if (!send(JSONObject().put("t", "drawscreen").put("i", i))) toasts.tryEmit("PC is not connected")
+    }
+
+    /** Drawing tablet: "hover", "down", "move" or "up" at x, y (0..1 on the monitor). */
+    fun draw(a: String, x: Float, y: Float) {
+        send(JSONObject().put("t", "draw").put("a", a).put("x", x.toDouble()).put("y", y.toDouble()))
     }
 
     private var audioHold = 0L

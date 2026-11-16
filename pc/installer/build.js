@@ -64,6 +64,7 @@ Promise.resolve(rceditDone).then(() => {
   step('Copying the app files');
   fs.cpSync(path.join(PC, 'ui'), path.join(APP, 'ui'), { recursive: true });
   fs.copyFileSync(path.join(PC, '..', 'shared', 'icons.json'), path.join(APP, 'icons.json'));
+  fs.cpSync(path.join(PC, '..', 'shared', 'fonts'), path.join(APP, 'fonts'), { recursive: true });
   fs.copyFileSync(path.join(PC, 'icon.ico'), path.join(APP, 'icon.ico'));
 
   step('Building the installer (Inno Setup)');

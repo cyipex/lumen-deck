@@ -12,8 +12,8 @@ If WScript.Arguments.Count = 0 Then
   edge = sh.ExpandEnvironmentStrings("%ProgramFiles(x86)%") & "\Microsoft\Edge\Application\msedge.exe"
   If Not fs.FileExists(edge) Then edge = sh.ExpandEnvironmentStrings("%ProgramFiles%") & "\Microsoft\Edge\Application\msedge.exe"
   If fs.FileExists(edge) Then
-    sh.Run """" & edge & """ --app=http://127.0.0.1:47801/ --window-size=1500,920", 1, False
+    sh.Run """" & edge & """ --app=http://127.0.0.1:47803/ --window-size=1500,920", 1, False
   Else
-    sh.Run "http://127.0.0.1:47801/", 1, False
+    sh.Run "http://127.0.0.1:47803/", 1, False
   End If
 End If

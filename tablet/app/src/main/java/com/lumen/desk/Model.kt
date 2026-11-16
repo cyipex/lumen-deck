@@ -17,7 +17,23 @@ data class Tile(
     val switchable get() = kind == "light" || (kind == "macro" && toggle)
 }
 
-data class PanelConfig(val theme: Theme, val pages: List<Page>, val tiles: Map<String, Tile>, val notify: Boolean = true)
+/** The clock screensaver, as set in the PC settings (Screensaver). */
+data class SaverStyle(
+    val background: String = "black",
+    val photo: String? = null,
+    val dim: Int = 35,
+    val font: String = "",
+    val position: String = "center",
+    val size: Int = 100,
+    val color: String = "white",
+    val date: Boolean = true,
+    val weather: Boolean = true,
+    val claude: Boolean = false,
+    val seconds: Boolean = false,
+    val drift: Boolean = true
+)
+
+data class PanelConfig(val theme: Theme, val pages: List<Page>, val tiles: Map<String, Tile>, val notify: Boolean = true, val saver: SaverStyle = SaverStyle())
 
 data class Spotify(
     val active: Boolean = false,
@@ -42,6 +58,12 @@ data class Audio(val volume: Int, val muted: Boolean, val output: String, val ou
 
 data class Weather(val city: String, val temp: Int, val text: String)
 
+/** One Claude usage window: percent used and when it resets (Unix seconds). */
+data class ClaudeWindow(val pct: Int, val resets: Long)
+
+/** The Claude plan's usage, as Claude Code last reported it on the PC; [at] = when (ms). */
+data class ClaudeUsage(val five: ClaudeWindow?, val week: ClaudeWindow?, val at: Long)
+
 data class LiveState(
     val spotify: Spotify = Spotify(),
     val audio: Audio? = null,
@@ -50,6 +72,7 @@ data class LiveState(
     val ram: Int? = null,
     val weather: Weather? = null,
     val tiles: Map<String, Boolean> = emptyMap(),
+    val claude: ClaudeUsage? = null,
     val pc: String = ""
 )
 
@@ -81,7 +104,15 @@ fun parseConfig(o: JSONObject): PanelConfig {
         )
     }
     val notify = o.optJSONObject("notify")?.optBoolean("enabled", true) ?: true
-    return PanelConfig(Theme(th.optString("tint", "Emerald"), th.optString("clockFont", "Fraunces"), th.optString("media", "volume")), pages, tiles, notify)
+    val s = o.optJSONObject("saver") ?: JSONObject()
+    val d = SaverStyle()
+    val saver = SaverStyle(
+        background = s.optString("background", d.background), photo = s.str("photo"), dim = s.optInt("dim", d.dim),
+        font = s.optString("font", d.font), position = s.optString("position", d.position), size = s.optInt("size", d.size),
+        color = s.optString("color", d.color), date = s.optBoolean("date", d.date), weather = s.optBoolean("weather", d.weather),
+        claude = s.optBoolean("claude", d.claude), seconds = s.optBoolean("seconds", d.seconds), drift = s.optBoolean("drift", d.drift)
+    )
+    return PanelConfig(Theme(th.optString("tint", "Emerald"), th.optString("clockFont", "Fraunces"), th.optString("media", "volume")), pages, tiles, notify, saver)
 }
 
 fun parseSpotify(o: JSONObject?): Spotify {
@@ -110,6 +141,14 @@ fun parseMixer(a: org.json.JSONArray?): List<MixerApp> =
 
 fun parseWeather(o: JSONObject?): Weather? =
     o?.let { Weather(it.optString("city"), it.optInt("temp"), it.optString("text")) }
+
+fun parseClaude(o: JSONObject?): ClaudeUsage? {
+    if (o == null) return null
+    fun w(j: JSONObject?) = j?.let { ClaudeWindow(it.optInt("pct").coerceIn(0, 100), it.optLong("resets")) }
+    val five = w(o.optJSONObject("five"))
+    val week = w(o.optJSONObject("week"))
+    return if (five == null && week == null) null else ClaudeUsage(five, week, o.optLong("at"))
+}
 
 fun parseTileStates(o: JSONObject?): Map<String, Boolean> =
     o?.keys()?.asSequence()?.associateWith { o.optBoolean(it) } ?: emptyMap()

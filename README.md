@@ -67,7 +67,7 @@ That's it for the PC. Lumen Desk runs in the background, starts with Windows, an
 3. Open **Lumen Desk** on the tablet. It finds your PC by itself.
 
 ### Step 3 – Allow the tablet
-On the PC, open the **Lumen Desk** settings → **Tablet** → click **Allow**. You only need to do this once.
+The tablet shows a 6-digit code. On the PC, open the **Lumen Desk** settings → **Tablet**, check that the same code is shown there and click **Allow**. You only need to do this once.
 
 Done! 🎉 Now make it yours: in the settings window click a tile to change what it does, drag tiles around, add pages, or pick a color under **Appearance**.
 
@@ -147,9 +147,15 @@ It will walk you through every step and ask before doing anything important.
 - `tablet/` – Android app (Kotlin, Jetpack Compose, Android 7.0+). Build with `./gradlew assembleRelease` (JDK 17, Android SDK 34).
 - `shared/icons.json` – icons shared by both.
 
-How it works: HTTP + WebSocket server on port 47801, auto-discovery over UDP broadcast (port 47802), settings only editable from the PC itself, new tablets need approval. Keyboard, mouse, volume and windows are controlled through small PowerShell helpers (Win32 / Core Audio). The second monitor is captured with ffmpeg `ddagrab`, encoded to H.264 and decoded by the tablet's hardware. Notifications are read from the Windows notification database (read-only). Optional env var `LUMEN_PC_NAME` changes the PC name shown on the tablet.
+How it works: WebSocket server for the tablet on port 47801, auto-discovery over UDP broadcast (port 47802), the settings window on `http://127.0.0.1:47803` (only reachable from the PC itself), new tablets need approval. Keyboard, mouse, volume and windows are controlled through small PowerShell helpers (Win32 / Core Audio). The second monitor is captured with ffmpeg `ddagrab`, encoded to H.264 and decoded by the tablet's hardware. Notifications are read from the Windows notification database (read-only). Optional env var `LUMEN_PC_NAME` changes the PC name shown on the tablet.
 
 See [AGENTS.md](AGENTS.md) for details.
+
+### Security
+- **Encrypted connection.** Every connection starts with a fresh key exchange (ECDH P-256); all messages, including the second-monitor video, are encrypted and authenticated with AES-256-GCM and numbered, so they cannot be read, changed or replayed on the network.
+- **Pairing.** A new tablet and the PC show the same 6-digit code; allow the tablet only when they match. The PC then gives the tablet a random 256-bit pairing key, which is mixed into every later connection – the tablet's id alone is worth nothing to an attacker, and the key itself never travels over the network again.
+- **Settings stay on the PC.** The settings window and its API listen only on 127.0.0.1:47803 (not forwarded over the USB cable) and accept requests only from the settings page itself (Host, Origin and a custom header are checked), so a web page open in your browser cannot change macros or run programs.
+- Pairing keys and the Spotify login are stored in your Windows user profile (`%APPDATA%\Lumen Desk`); anyone who can log into your Windows account can read them.
 
 ## Related
 **Lumen TV** – the same look as a launcher for Android TV / Google TV.

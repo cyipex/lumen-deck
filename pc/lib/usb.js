@@ -29,7 +29,14 @@ async function check() {
       .map((p) => p[0])
   );
   for (const serial of now) {
-    if (reversed.has(serial)) continue;
+    // The forwarding is lost when the adb server restarts (another tool, Android Studio) even though the
+    // tablet stays plugged in, so it is checked every time, not only when the tablet appears.
+    if (reversed.has(serial)) {
+      const list = await adb(['-s', serial, 'reverse', '--list']);
+      if (list === null || list.includes(`tcp:${port}`)) continue;
+      console.log(`USB: forwarding for ${serial} was lost, setting it up again.`);
+      reversed.delete(serial);
+    }
     const ok = await adb(['-s', serial, 'reverse', `tcp:${port}`, `tcp:${port}`]);
     if (ok !== null) {
       reversed.add(serial);

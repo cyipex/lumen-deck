@@ -3,17 +3,20 @@
 //   LumenDesk.exe --background  only starts the server (used when Windows starts)
 //   LumenDesk.exe --supervisor  keeps the server running and restarts it after a crash (run.js)
 //   LumenDesk.exe --server      the server itself (started by the supervisor)
+//   LumenDesk.exe --claude-status   Claude Code's status-line command: saves the plan's usage for the tablet (lib/claude.js)
 const { spawn } = require('child_process');
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
 
 const args = process.argv.slice(1);
-const URL = 'http://127.0.0.1:47801/';
+// The settings live on their own port that only this PC can open; 47801 is the tablet's port.
+const URL = 'http://127.0.0.1:47803/';
+const PING = 'http://127.0.0.1:47801/ping';
 
 function ping() {
   return new Promise((resolve) => {
-    const req = http.get(URL + 'ping', { timeout: 800 }, (res) => {
+    const req = http.get(PING, { timeout: 800 }, (res) => {
       res.resume();
       resolve(res.statusCode === 200);
     });
@@ -45,7 +48,20 @@ function openSettings() {
   p.unref();
 }
 
-if (args.includes('--server')) {
+if (args.includes('--claude-status')) {
+  // Runs every time Claude Code redraws its status line, so it must be quick and never open a window.
+  let input = '';
+  const done = () => {
+    let line = '';
+    try { line = require('./lib/claude').save(input); } catch {}
+    process.stdout.write(line);
+    process.exit(0);
+  };
+  process.stdin.setEncoding('utf8');
+  process.stdin.on('data', (d) => { input += d; if (input.length > 1e6) done(); });
+  process.stdin.on('end', done);
+  setTimeout(done, 2000);
+} else if (args.includes('--server')) {
   require('./server');
 } else if (args.includes('--supervisor')) {
   require('./run');

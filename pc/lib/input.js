@@ -130,10 +130,57 @@ function type(text) {
 }
 
 // Mouse: x, y are 0..65535 across the whole virtual desktop (all monitors).
-const MOUSE = { move: 0x1, ldown: 0x2, lup: 0x4, rdown: 0x8, rup: 0x10, wheel: 0x800, abs: 0x8000, desk: 0x4000 };
+const MOUSE = { move: 0x1, ldown: 0x2, lup: 0x4, rdown: 0x8, rup: 0x10, mdown: 0x20, mup: 0x40, wheel: 0x800, hwheel: 0x1000, abs: 0x8000, desk: 0x4000 };
 
 function mouse(x, y, flags, data = 0) {
   send(`M ${Math.round(x)} ${Math.round(y)} ${flags} ${Math.round(data)}`);
+}
+
+// ---------- touchpad and keyboard on the tablet ----------
+
+const BUTTONS = { left: [MOUSE.ldown, MOUSE.lup], right: [MOUSE.rdown, MOUSE.rup], middle: [MOUSE.mdown, MOUSE.mup] };
+const MODIFIERS = ['ctrl', 'shift', 'alt', 'win'];
+// Mouse buttons and modifier keys the tablet holds down; released when it lets go or disconnects.
+const heldButtons = new Set();
+const heldKeys = new Set();
+
+// Relative movement (pixels), buttons and scrolling (wheel: 120 = one notch, positive = up / right).
+function pad(msg) {
+  const n = (v, max) => Math.max(-max, Math.min(max, Math.round(Number(v) || 0)));
+  const name = BUTTONS[msg.b] ? msg.b : 'left';
+  const [down, up] = BUTTONS[name];
+  switch (msg.a) {
+    case 'move': return mouse(n(msg.dx, 4000), n(msg.dy, 4000), MOUSE.move);
+    case 'click': mouse(0, 0, down); return mouse(0, 0, up);
+    case 'down': heldButtons.add(name); return mouse(0, 0, down);
+    case 'up': heldButtons.delete(name); return mouse(0, 0, up);
+    case 'scroll':
+      if (msg.dy) mouse(0, 0, MOUSE.wheel, n(msg.dy, 2400));
+      if (msg.dx) mouse(0, 0, MOUSE.hwheel, n(msg.dx, 2400));
+      return;
+    case 'release': return releaseAll();
+  }
+}
+
+// One key with the modifiers pressed just for it, e.g. { k: 't', mods: ['ctrl', 'shift'] }. Held modifiers are already down.
+function key(msg) {
+  const mods = (Array.isArray(msg.mods) ? msg.mods : []).filter((m) => MODIFIERS.includes(m) && !heldKeys.has(m));
+  combo([...mods, String(msg.k)].join('+'));
+}
+
+// A modifier that stays down (locked on the tablet keyboard, or Ctrl while pinching to zoom).
+function hold(name, down) {
+  if (!MODIFIERS.includes(name)) return;
+  const c = keyCode(name);
+  const ext = EXTENDED.has(c) ? 1 : 0;
+  if (down && !heldKeys.has(name)) { heldKeys.add(name); send(`D ${c} ${ext}`); }
+  if (!down && heldKeys.has(name)) { heldKeys.delete(name); send(`U ${c} ${ext}`); }
+}
+
+function releaseAll() {
+  for (const b of heldButtons) mouse(0, 0, BUTTONS[b][1]);
+  heldButtons.clear();
+  for (const k of [...heldKeys]) hold(k, false);
 }
 
 // Brings a program window to the front, e.g. "chrome".
@@ -145,4 +192,4 @@ function validCombo(str) {
   return String(str || '').split('+').every((k) => keyCode(k) !== null);
 }
 
-module.exports = { warmUp: helper, combo, media, type, validCombo, mouse, MOUSE, focus };
+module.exports = { warmUp: helper, combo, media, type, validCombo, mouse, MOUSE, focus, pad, key, hold, releaseAll };

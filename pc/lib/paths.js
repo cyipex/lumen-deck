@@ -18,6 +18,9 @@ module.exports = {
   APP,
   UI: path.join(APP, 'ui'),
   ICONS: packaged ? path.join(APP, 'icons.json') : path.join(PC, '..', 'shared', 'icons.json'),
-  DATA: path.join(USER, 'data'),
+  // Clock fonts shared with the tablet (fonts.json + the font files), shown in the settings preview.
+  FONTS: packaged ? path.join(APP, 'fonts') : path.join(PC, '..', 'shared', 'fonts'),
+  // LUMEN_DATA_DIR: a separate data folder for a test copy of the server (pc/test).
+  DATA: process.env.LUMEN_DATA_DIR || path.join(USER, 'data'),
   BIN: path.join(USER, 'bin')
 };

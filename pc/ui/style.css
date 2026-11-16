@@ -141,7 +141,27 @@ label.check input { width: 18px; height: 18px; accent-color: #fff; }
 .swatch i { width: 48px; height: 48px; border-radius: 24px; border: 2px solid transparent; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2); }
 .swatch.sel { color: #fff; }
 .swatch.sel i { border-color: #fff; box-shadow: 0 0 16px rgba(255,255,255,0.35); }
-.fonts { display: flex; gap: 12px; flex-wrap: wrap; }
+.fonts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.font span { white-space: nowrap; overflow: hidden; }
+.font .x { float: right; color: var(--g2); font-size: 12px; }
+.saver-layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 1100px) { .saver-layout { grid-template-columns: 1fr; } }
+.saver-preview { position: relative; aspect-ratio: 16 / 10; border-radius: 22px; overflow: hidden; background: #050505; container-type: inline-size; border: 1px solid rgba(255,255,255,0.12); }
+.saver-preview .photo { position: absolute; inset: 0; background-size: cover; background-position: center; }
+.saver-preview .shade { position: absolute; inset: 0; background: #000; }
+.saver-preview .clock { position: absolute; display: flex; flex-direction: column; padding: 5cqw; }
+.saver-preview .clock .t { line-height: 1; white-space: nowrap; }
+.saver-preview .clock .d { font-size: 2.1cqw; opacity: 0.8; margin-top: 1.2cqw; }
+.saver-preview .clock .w { font-size: 1.6cqw; opacity: 0.6; }
+.saver-controls h2 { margin-top: 18px; }
+.saver-controls h2:first-child { margin-top: 0; }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 10px; }
+.seg button { font: inherit; color: #fff; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 12px; padding: 7px 14px; cursor: pointer; }
+.seg button.sel { background: #fff; color: var(--ink); border-color: #fff; }
+.posgrid { display: grid; grid-template-columns: repeat(3, 44px); gap: 6px; margin: 6px 0 12px; }
+.posgrid button { width: 44px; height: 30px; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); cursor: pointer; }
+.posgrid button.sel { background: #fff; }
+.field input[type=range] { width: 100%; }
 .font { flex: 1 1 180px; border-radius: 20px; padding: 18px; text-align: center; cursor: pointer; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-family: inherit; }
 .font span { display: block; font-size: 64px; line-height: 1; }
 .font small { color: var(--g2); }

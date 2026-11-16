@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -190,8 +191,11 @@ fun isDefaultHome(context: Context): Boolean {
 /** "Exit launcher": opens another launcher on the tablet (e.g. the stock one). */
 fun openOtherLauncher(context: Context): Boolean {
     val home = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
-    val other = context.packageManager.queryIntentActivities(home, 0)
-        .firstOrNull { it.activityInfo.packageName != context.packageName && it.activityInfo.packageName != "com.android.settings" }
+    // The tablet's own (system) launcher first; never the old Liquid Control, which shows its old layout.
+    val skip = setOf(context.packageName, "com.android.settings", "com.liquid.control")
+    val others = context.packageManager.queryIntentActivities(home, 0).filter { it.activityInfo.packageName !in skip }
+    val other = others.firstOrNull { it.activityInfo.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM != 0 }
+        ?: others.firstOrNull()
         ?: return false
     context.startActivity(
         Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
@@ -251,18 +255,19 @@ fun LauncherSettings(link: Link, cfg: PanelConfig?, status: Status, tint: Color,
                 T(cfg?.theme?.tint ?: "", 14.us, Grey2)
 
                 Label("Clock font")
-                Row(horizontalArrangement = Arrangement.spacedBy(10.u)) {
+                // 20 fonts: a row to swipe through (uploading your own font is in the PC settings → Appearance).
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.u)) {
                     for ((name, f) in ClockFonts) {
                         val sel = cfg?.theme?.clockFont == name
                         Column(
-                            Modifier.weight(1f).clip(RoundedCornerShape(22.u))
+                            Modifier.width(150.u).clip(RoundedCornerShape(22.u))
                                 .background(if (sel) White.copy(alpha = 0.16f) else White.copy(alpha = 0.05f))
                                 .border(1.dp, if (sel) White else White.copy(alpha = 0.12f), RoundedCornerShape(22.u))
                                 .clickable(enabled = connected) { link.setting(listOf("theme", "clockFont"), name) }
                                 .padding(vertical = 14.u),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            T("21:14", 44.us, family = f.family, letterSpacing = f.trackingEm.em)
+                            T("21:14", (44f * 150f / f.size).us, family = f.family, letterSpacing = f.trackingEm.em)
                             T(name, 13.us, Grey2)
                         }
                     }
@@ -280,6 +285,13 @@ fun LauncherSettings(link: Link, cfg: PanelConfig?, status: Status, tint: Color,
                 Row(horizontalArrangement = Arrangement.spacedBy(10.u)) {
                     Choice("Dim after 3 min", dim, true, Modifier.weight(1f)) { dim = true; Power.setDim(context, true) }
                     Choice("Never dim", !dim, true, Modifier.weight(1f)) { dim = false; Power.setDim(context, false) }
+                }
+
+                Label("Clock screensaver")
+                var saver by remember { mutableStateOf(Power.saverEnabled(context)) }
+                Row(horizontalArrangement = Arrangement.spacedBy(10.u)) {
+                    Choice("After 2 min", saver, true, Modifier.weight(1f)) { saver = true; Power.setSaver(context, true) }
+                    Choice("Only from its button", !saver, true, Modifier.weight(1f)) { saver = false; Power.setSaver(context, false) }
                 }
 
                 Label("Notifications from the PC")
@@ -300,6 +312,7 @@ fun LauncherSettings(link: Link, cfg: PanelConfig?, status: Status, tint: Color,
                             is Status.Pending -> "Waiting for approval on the PC"
                             is Status.Connecting -> "Connecting to ${status.host}"
                             Status.Searching -> "Looking for the PC on the network"
+                            is Status.Refused -> "${status.pc} does not accept this tablet any more"
                         }, 15.us, Grey1
                     )
                     BasicText(

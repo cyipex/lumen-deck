@@ -118,6 +118,11 @@ function nalSplitter(onNal) {
 
 const START = Buffer.from([0, 0, 0, 1]);
 
+// Everything on the video connection is encrypted with the key from its one-time ticket (server.js).
+function out(ws, data) {
+  ws.send(ws.session.seal(Buffer.isBuffer(data) ? data : Buffer.from(JSON.stringify(data))), { binary: true });
+}
+
 function startStream(ws, amf = true) {
   const usb = ws.usb;
   const proc = spawn(FFMPEG, encoderArgs(amf, usb), { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
@@ -148,7 +153,7 @@ function startStream(ws, amf = true) {
       if (type !== 7) return;
       v.dropping = false;
     }
-    ws.send(Buffer.concat([START, nal]), { binary: true });
+    out(ws, Buffer.concat([START, nal]));
   }));
   proc.on('exit', (code) => {
     clearInterval(v.watch);
@@ -170,11 +175,11 @@ async function open(ws) {
   try {
     await findTarget();
   } catch (e) {
-    ws.send(JSON.stringify({ t: 'error', text: e.message }));
+    out(ws, { t: 'error', text: e.message });
     return ws.close();
   }
   if (ws.readyState !== 1) return;
-  ws.send(JSON.stringify({ t: 'info', w: target.screen.w, h: target.screen.h }));
+  out(ws, { t: 'info', w: target.screen.w, h: target.screen.h });
   startStream(ws);
   ws.on('close', () => { if (viewer && viewer.ws === ws) close(); });
 }
@@ -210,4 +215,52 @@ function pointer(msg) {
   }
 }
 
-module.exports = { open, close, pointer, findTarget, screens };
+// ---------- drawing tablet: the tablet's surface is one whole monitor, the finger is the pen ----------
+
+let drawTarget = null; // { screen, desk }
+let drawDown = false;
+
+// Picks monitor number i (the main one first, then left to right) and tells the tablet its size.
+async function drawScreen(i) {
+  const list = (await screens()).sort((a, b) => (b.primary - a.primary) || (a.x - b.x));
+  const n = list.length;
+  const idx = (((Number(i) || 0) % n) + n) % n;
+  drawTarget = {
+    screen: list[idx],
+    desk: {
+      x: Math.min(...list.map((s) => s.x)),
+      y: Math.min(...list.map((s) => s.y)),
+      r: Math.max(...list.map((s) => s.x + s.w)),
+      b: Math.max(...list.map((s) => s.y + s.h))
+    }
+  };
+  return { i: idx, n, w: list[idx].w, h: list[idx].h };
+}
+
+// a: 'hover' (only moves), 'down' (pen on the paper = left button), 'move', 'up'. x, y are 0..1 on the monitor.
+function draw(msg) {
+  if (!drawTarget) return;
+  const { screen, desk } = drawTarget;
+  const px = screen.x + Math.max(0, Math.min(1, Number(msg.x) || 0)) * (screen.w - 1);
+  const py = screen.y + Math.max(0, Math.min(1, Number(msg.y) || 0)) * (screen.h - 1);
+  const nx = ((px - desk.x) * 65535) / (desk.r - desk.x - 1);
+  const ny = ((py - desk.y) * 65535) / (desk.b - desk.y - 1);
+  const at = MOUSE.move | MOUSE.abs | MOUSE.desk;
+  if (msg.a === 'down') {
+    drawDown = true;
+    return input.mouse(nx, ny, at | MOUSE.ldown);
+  }
+  if (msg.a === 'up') {
+    drawDown = false;
+    return input.mouse(nx, ny, at | MOUSE.lup);
+  }
+  input.mouse(nx, ny, at);
+}
+
+// The tablet went away with the pen still down.
+function drawRelease() {
+  if (drawDown) input.mouse(0, 0, MOUSE.lup);
+  drawDown = false;
+}
+
+module.exports = { open, close, pointer, findTarget, screens, drawScreen, draw, drawRelease };

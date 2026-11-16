@@ -40,6 +40,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerDefaults
+import androidx.compose.foundation.pager.PagerSnapDistance
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -178,6 +180,13 @@ fun App(link: Link) {
     val status by link.status.collectAsState()
     var settings by remember { mutableStateOf(false) }
     var display by remember { mutableStateOf(false) }
+    var phone by remember { mutableStateOf(false) }
+    var touchpad by remember { mutableStateOf(false) }
+    var presenter by remember { mutableStateOf(false) }
+    var drawing by remember { mutableStateOf(false) }
+    var claudeCard by remember { mutableStateOf(false) }
+    var connectionCard by remember { mutableStateOf(false) }
+    val saver by Hub.saver.collectAsState()
     var library by remember { mutableStateOf(false) }
     var apps by remember { mutableStateOf(false) }
     var toast by remember { mutableStateOf<String?>(null) }
@@ -205,24 +214,42 @@ fun App(link: Link) {
                     val i = c.pages.indexOfFirst { it.id == id }
                     if (i >= 0) scope.launch { pager.animateScrollToPage(i) }
                 }
-                HorizontalPager(pager, Modifier.fillMaxSize(), beyondViewportPageCount = 1, key = { c.pages.getOrNull(it)?.id ?: it }) { i ->
+                // A short, quick swipe is enough to change the page, and the page settles softly.
+                val fling = PagerDefaults.flingBehavior(
+                    pager,
+                    pagerSnapDistance = PagerSnapDistance.atMost(1),
+                    snapAnimationSpec = spring(dampingRatio = 0.86f, stiffness = 420f),
+                    snapPositionalThreshold = 0.18f
+                )
+                HorizontalPager(pager, Modifier.fillMaxSize(), beyondViewportPageCount = 1, flingBehavior = fling, key = { c.pages.getOrNull(it)?.id ?: it }) { i ->
                     val page = c.pages.getOrNull(i) ?: return@HorizontalPager
                     val onTap: (Tile) -> Unit = { t ->
                         when (t.kind) {
                             "page" -> goTo(t.page)
                             "display" -> display = true
+                            "touchpad" -> touchpad = true
+                            "presenter" -> presenter = true
+                            "draw" -> drawing = true
                             else -> link.tap(t)
                         }
                     }
-                    when (page.layout) {
-                        "home" -> HomePage(page, c, live, status, link, onTap, { library = true }, { apps = true }) { settings = true }
-                        "sliders" -> SlidersPage(live, link)
-                        "big" -> GridPage(page, c, live, onTap, cols = 3, rows = 2)
-                        else -> GridPage(page, c, live, onTap, cols = 4, rows = 3)
+                    // The neighbouring page shrinks a little while sliding, so the movement reads clearly.
+                    // Read only while drawing, so sliding does not rebuild the pages on every frame.
+                    Box(Modifier.fillMaxSize().graphicsLayer {
+                        val away = kotlin.math.abs((pager.currentPage - i) + pager.currentPageOffsetFraction).coerceAtMost(1f)
+                        scaleX = 1f - 0.05f * away
+                        scaleY = 1f - 0.05f * away
+                    }) {
+                        when (page.layout) {
+                            "home" -> HomePage(page, c, live, status, link, onTap, { library = true }, { apps = true }, { phone = true }, { touchpad = true }, { presenter = true }, { drawing = true }, { claudeCard = true }, { connectionCard = true }) { settings = true }
+                            "sliders" -> SlidersPage(live, link)
+                            "big" -> GridPage(page, c, live, onTap, cols = 3, rows = 2)
+                            else -> GridPage(page, c, live, onTap, cols = 4, rows = 3)
+                        }
                     }
                 }
-                if (c.pages.size > 1) Dots(c.pages.size, pager.currentPage, Modifier.align(Alignment.BottomCenter))
-                if (status !is Status.Connected && status !is Status.Pending) {
+                if (c.pages.size > 1) Dots(c.pages.size, pager.currentPage, Modifier.align(Alignment.BottomCenter)) { i -> scope.launch { pager.animateScrollToPage(i) } }
+                if (status !is Status.Connected && status !is Status.Pending && status !is Status.Refused) {
                     OfflineBanner(status, link, Modifier.align(Alignment.TopCenter).offset(y = 10.u))
                 }
             }
@@ -230,14 +257,30 @@ fun App(link: Link) {
             if (library) LibraryScreen(link, live.spotify, tint) { library = false }
             if (apps) AppsScreen(tint) { apps = false }
             if (display) DisplayScreen(link) { display = false }
+            if (phone) PhoneScreen { phone = false }
+            if (touchpad) TouchpadScreen(link) { touchpad = false }
+            if (presenter) PresenterScreen(link) { presenter = false }
+            if (drawing) DrawScreen(link) { drawing = false }
             Notices(link, Modifier.align(Alignment.TopEnd).padding(top = 20.u, end = 20.u))
 
-            if (status is Status.Pending) PairingCard((status as Status.Pending).pc)
+            if (status is Status.Pending) {
+                PairingCard(status as Status.Pending)
+                // The code has to stay readable while the user walks to the PC.
+                androidx.compose.runtime.DisposableEffect(Unit) {
+                    Hub.awake(true)
+                    onDispose { Hub.awake(false) }
+                }
+            }
+            if (status is Status.Refused) RefusedCard((status as Status.Refused).pc, link)
+            if (claudeCard) ClaudeCard(live.claude) { claudeCard = false }
+            if (connectionCard) ConnectionCard(link, status, { settings = true }) { connectionCard = false }
 
             AnimatedVisibility(toast != null, Modifier.align(Alignment.BottomCenter).offset(y = (-36).u), enter = fadeIn(), exit = fadeOut()) {
                 Pill(toast ?: "")
             }
             if (settings) LauncherSettings(link, cfg, status, tint) { settings = false }
+            // Above everything; MainActivity closes it on the next touch without pressing anything underneath.
+            if (saver) Screensaver(cfg, live)
         }
     }
 }
@@ -331,11 +374,18 @@ fun Pill(text: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun Dots(count: Int, current: Int, modifier: Modifier) {
-    Row(modifier.padding(bottom = 8.u), horizontalArrangement = Arrangement.spacedBy(8.u)) {
+fun Dots(count: Int, current: Int, modifier: Modifier, onPick: (Int) -> Unit) {
+    // Each dot has a finger-sized touch area: a tap jumps straight to that page.
+    Row(modifier) {
         repeat(count) { i ->
             val a by animateFloatAsState(if (i == current) 0.95f else 0.28f, label = "dot")
-            Box(Modifier.size(6.u).clip(CircleShape).background(White.copy(alpha = a)))
+            val w by animateFloatAsState(if (i == current) 18f else 6f, label = "dotw")
+            Box(
+                Modifier.size(width = 30.u, height = 24.u).clickable(remember { MutableInteractionSource() }, null) { onPick(i) },
+                contentAlignment = Alignment.Center
+            ) {
+                Box(Modifier.size(width = w.u, height = 6.u).clip(CircleShape).background(White.copy(alpha = a)))
+            }
         }
     }
 }
@@ -343,10 +393,10 @@ fun Dots(count: Int, current: Int, modifier: Modifier) {
 // ---------- home page (layout A) ----------
 
 @Composable
-fun HomePage(page: Page, cfg: PanelConfig, live: LiveState, status: Status, link: Link, onTap: (Tile) -> Unit, onLibrary: () -> Unit, onApps: () -> Unit, onSettings: () -> Unit) {
+fun HomePage(page: Page, cfg: PanelConfig, live: LiveState, status: Status, link: Link, onTap: (Tile) -> Unit, onLibrary: () -> Unit, onApps: () -> Unit, onPhone: () -> Unit, onTouchpad: () -> Unit, onPresenter: () -> Unit, onDraw: () -> Unit, onClaude: () -> Unit, onConnection: () -> Unit, onSettings: () -> Unit) {
     Row(Modifier.fillMaxSize().padding(24.u), horizontalArrangement = Arrangement.spacedBy(18.u)) {
         val usb by link.viaUsb.collectAsState()
-        ClockCard(cfg, live, status, usb, Modifier.weight(1.25f).fillMaxHeight(), onApps, onSettings)
+        ClockCard(cfg, live, status, usb, Modifier.weight(1.25f).fillMaxHeight(), onApps, onPhone, onTouchpad, onPresenter, onDraw, onClaude, onConnection, onSettings)
         Column(Modifier.weight(2f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(18.u)) {
             SpotifyCard(live.spotify, live.audio, cfg.theme.media, link, onLibrary, Modifier.weight(1f).fillMaxWidth())
             Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(18.u)) {
@@ -421,50 +471,91 @@ fun rememberNow(): Calendar {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ClockCard(cfg: PanelConfig, live: LiveState, status: Status, usb: Boolean, modifier: Modifier, onApps: () -> Unit, onSettings: () -> Unit) {
+fun ClockCard(cfg: PanelConfig, live: LiveState, status: Status, usb: Boolean, modifier: Modifier, onApps: () -> Unit, onPhone: () -> Unit, onTouchpad: () -> Unit, onPresenter: () -> Unit, onDraw: () -> Unit, onClaude: () -> Unit, onConnection: () -> Unit, onSettings: () -> Unit) {
     val now = rememberNow()
     val h = now.get(Calendar.HOUR_OF_DAY)
     val greeting = when { h < 5 -> "Good night"; h < 12 -> "Good morning"; h < 18 -> "Good afternoon"; h < 22 -> "Good evening"; else -> "Good night" }
-    val font = ClockFonts[cfg.theme.clockFont] ?: ClockFonts.getValue("Fraunces")
-    Column(
+    val ready by Assets.ready.collectAsState()
+    val font = remember(cfg.theme.clockFont, ready) { Fonts.get(cfg.theme.clockFont) }
+    // Clock and info on the left, the shortcuts in one column on the right.
+    Row(
         modifier
             .glass(RoundedCornerShape(40.u))
             .combinedClickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onLongClick = onSettings) {}
-            .padding(32.u),
-        verticalArrangement = Arrangement.SpaceBetween
+            .padding(start = 32.u, top = 28.u, bottom = 28.u, end = 20.u)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            T(greeting, 18.us, Grey2, modifier = Modifier.weight(1f))
-            val connected = status is Status.Connected
-            Box(Modifier.size(7.u).clip(CircleShape).background(if (connected) White else White.copy(alpha = 0.25f)))
-            Spacer(Modifier.width(8.u))
-            T(if (connected) live.pc.ifEmpty { "PC" } + (if (usb) " · USB" else "") else "Offline", 14.us, if (connected) Grey1 else Grey2)
-        }
-        Column {
-            T(
-                "%02d:%02d".format(h, now.get(Calendar.MINUTE)), font.size.us,
-                family = font.family, letterSpacing = font.trackingEm.em, lineHeight = (font.size * 1.05f).us,
-                modifier = Modifier.offset(x = (-4).u)
-            )
-            Spacer(Modifier.height(20.u))
-            T("${DAYS[now.get(Calendar.DAY_OF_WEEK) - 1]}, ${MONTHS[now.get(Calendar.MONTH)]} ${now.get(Calendar.DAY_OF_MONTH)}", 24.us, Grey0)
-            live.weather?.let { w ->
-                Spacer(Modifier.height(10.u))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Glyph("cloud", 20.u, Grey2)
-                    Spacer(Modifier.width(10.u))
-                    T("${w.city} · ${w.temp}° · ${w.text}", 17.us, Grey2)
+        Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.u)) {
+                T(greeting, 18.us, Grey2)
+                // A tap shows how the tablet is connected (or why not).
+                val connected = status is Status.Connected
+                Row(
+                    Modifier.glass(RoundedCornerShape(18.u)).clickable(onClick = onConnection).height(34.u).padding(horizontal = 12.u),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(Modifier.size(7.u).clip(CircleShape).background(if (connected) White else Color(0xFFFF8A65)))
+                    Spacer(Modifier.width(8.u))
+                    T(if (connected) live.pc.ifEmpty { "PC" } + (if (usb) " · USB" else " · Wi-Fi") else "Offline", 13.us, if (connected) Grey1 else Grey0)
+                    Spacer(Modifier.width(6.u))
+                    Glyph("chevron-right", 13.u, Grey2)
                 }
             }
+            BoxWithConstraints(Modifier.fillMaxWidth()) {
+                val width = maxWidth
+                Column {
+                    Box(Modifier.offset(x = (-3).u)) {
+                        FitText("%02d:%02d".format(h, now.get(Calendar.MINUTE)), font, font.size, White, width)
+                    }
+                    Spacer(Modifier.height(18.u))
+                    T("${DAYS[now.get(Calendar.DAY_OF_WEEK) - 1]}, ${MONTHS[now.get(Calendar.MONTH)]} ${now.get(Calendar.DAY_OF_MONTH)}", 23.us, Grey0)
+                    live.weather?.let { w ->
+                        Spacer(Modifier.height(8.u))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Glyph("cloud", 19.u, Grey2)
+                            Spacer(Modifier.width(9.u))
+                            T("${w.city} · ${w.temp}° · ${w.text}", 16.us, Grey2)
+                        }
+                    }
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.u)) {
+                Chip("CPU", live.cpu?.let { "$it %" } ?: "–")
+                Chip("RAM", live.ram?.let { "$it %" } ?: "–")
+                ClaudeChip(live.claude, onClaude)
+            }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(10.u), verticalAlignment = Alignment.CenterVertically) {
-            Chip("CPU", live.cpu?.let { "$it %" } ?: "–")
-            Chip("RAM", live.ram?.let { "$it %" } ?: "–")
+        Spacer(Modifier.width(18.u))
+        Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(10.u)) {
+            // Tools: touchpad with keyboard, presentation remote, drawing tablet, the phone's screen, screensaver ...
+            DockButton("touchpad", onTouchpad)
+            DockButton("slides", onPresenter)
+            DockButton("pen", onDraw)
+            DockButton("phone", onPhone)
+            DockButton("clock") { Hub.saver.value = true }
             Spacer(Modifier.weight(1f))
-            // The tablet's app catalog and the launcher settings.
-            CornerButton("grid", onApps)
-            CornerButton("gear", onSettings)
+            // ... and the tablet itself: app catalog and settings.
+            DockButton("grid", onApps)
+            DockButton("gear", onSettings)
         }
+    }
+}
+
+/** A shortcut in the clock card's column: a rounded square. */
+@Composable
+fun DockButton(icon: String, onClick: () -> Unit) {
+    val click = haptic()
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (pressed) 0.92f else 1f, spring(dampingRatio = 0.6f, stiffness = 600f), label = "dock")
+    Box(
+        Modifier.size(58.u)
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .glass(RoundedCornerShape(18.u))
+            .background(White.copy(alpha = if (pressed) 0.14f else 0.03f))
+            .clickable(interaction, indication = null) { click(); onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Glyph(icon, 26.u, Grey0)
     }
 }
 
@@ -482,7 +573,7 @@ fun CornerButton(icon: String, onClick: () -> Unit) {
 @Composable
 fun Chip(label: String, value: String) {
     Row(
-        Modifier.glass(RoundedCornerShape(20.u)).height(40.u).padding(horizontal = 16.u),
+        Modifier.glass(RoundedCornerShape(20.u)).height(36.u).padding(horizontal = 12.u),
         verticalAlignment = Alignment.CenterVertically
     ) {
         T(label, 14.us, Grey1)
@@ -788,14 +879,43 @@ fun Waiting(status: Status, onSettings: () -> Unit) {
 }
 
 @Composable
-fun PairingCard(pc: String) {
+fun PairingCard(p: Status.Pending) {
     Box(Modifier.fillMaxSize().background(Ink.copy(alpha = 0.55f)).clickable(remember { MutableInteractionSource() }, null) {}, contentAlignment = Alignment.Center) {
-        Column(Modifier.glass(RoundedCornerShape(40.u)).padding(40.u).widthIn(max = 640.u), verticalArrangement = Arrangement.spacedBy(12.u)) {
-            T("Allow the tablet on the PC", 30.us, weight = FontWeight.SemiBold)
+        Column(Modifier.glass(RoundedCornerShape(40.u)).background(Ink.copy(alpha = 0.75f)).padding(40.u).widthIn(max = 660.u), verticalArrangement = Arrangement.spacedBy(12.u)) {
+            T(if (p.known) "The PC does not know this tablet any more" else "Allow the tablet on the PC", 30.us, weight = FontWeight.SemiBold)
             BasicText(
-                "On the PC${if (pc.isNotEmpty()) " $pc" else ""} open Lumen Desk → Tablet and press Allow. You only need to do this once.",
+                "On the PC${if (p.pc.isNotEmpty()) " ${p.pc}" else ""} open Lumen Desk → Tablet. Press Allow only if it shows this same code:",
                 style = TextStyle(color = Grey1, fontSize = 18.us, fontFamily = Inter)
             )
+            T(p.code.chunked(3).joinToString(" "), 54.us, weight = FontWeight.SemiBold, letterSpacing = 0.08f.em)
+            BasicText(
+                if (p.known) "This tablet was allowed before. If you did not remove it on this PC and the code is not on its screen, do not allow it."
+                else "A different code means another device is in between – do not allow it then. You only need to do this once.",
+                style = TextStyle(color = Grey2, fontSize = 15.us, fontFamily = Inter)
+            )
+        }
+    }
+}
+
+/**
+ * The PC closed the connection because it does not accept this tablet's key – usually because the tablet was
+ * paired with another PC (each PC makes its own key) or removed on this PC. Pairing again shows a code to allow.
+ */
+@Composable
+fun RefusedCard(pc: String, link: Link) {
+    Box(Modifier.fillMaxSize().background(Ink.copy(alpha = 0.55f)).clickable(remember { MutableInteractionSource() }, null) {}, contentAlignment = Alignment.Center) {
+        Column(Modifier.glass(RoundedCornerShape(40.u)).background(Ink.copy(alpha = 0.75f)).padding(40.u).widthIn(max = 660.u), verticalArrangement = Arrangement.spacedBy(14.u)) {
+            T("${pc.ifEmpty { "The PC" }} does not accept this tablet", 30.us, weight = FontWeight.SemiBold)
+            BasicText(
+                "The tablet's key for this PC is not the one the PC knows – it was probably paired with another PC with Lumen Desk, " +
+                    "or removed on this PC. Pair again: the tablet then shows a code, and you allow it on the PC (Lumen Desk → Tablet). " +
+                    "Your pages and tiles are kept on the PC.",
+                style = TextStyle(color = Grey1, fontSize = 17.us, fontFamily = Inter)
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(10.u)) {
+                TextButton("Pair again", { link.pairAgain() }, primary = true)
+                TextButton("Try again", { link.retry() })
+            }
         }
     }
 }
@@ -829,6 +949,7 @@ fun SettingsCard(link: Link, status: Status, onClose: () -> Unit) {
                     is Status.Pending -> "Waiting for approval on the PC"
                     is Status.Connecting -> "Connecting to ${status.host}"
                     Status.Searching -> "Looking for the PC on the network"
+                    is Status.Refused -> "The PC does not accept this tablet any more"
                 }, 17.us, Grey1
             )
             BasicText(

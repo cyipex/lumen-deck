@@ -44,11 +44,43 @@ val Inter = FontFamily(
 
 data class ClockFont(val family: FontFamily, val size: Float, val trackingEm: Float)
 
-val ClockFonts = mapOf(
-    "Fraunces" to ClockFont(FontFamily(Font(R.font.fraunces_light)), 150f, -0.035f),
-    "Space Grotesk" to ClockFont(FontFamily(Font(R.font.spacegrotesk_light)), 146f, -0.06f),
-    "Outfit" to ClockFont(FontFamily(Font(R.font.outfit_thin)), 162f, -0.02f)
-)
+/**
+ * Clock fonts: the 20 bundled ones (shared/fonts/fonts.json, the same files the PC settings show) and fonts the
+ * user uploaded on the PC ("custom:<id>", files that Assets brings over). [size] makes them look equally big.
+ */
+object Fonts {
+    private var builtin: Map<String, ClockFont> = emptyMap()
+    private val custom = HashMap<String, ClockFont>()
+
+    fun load(context: Context) {
+        if (builtin.isNotEmpty()) return
+        val list = org.json.JSONArray(context.assets.open("fonts/fonts.json").bufferedReader().use { it.readText() })
+        builtin = (0 until list.length()).associate { i ->
+            val f = list.getJSONObject(i)
+            f.getString("name") to ClockFont(
+                FontFamily(Font("fonts/" + f.getString("file"), context.assets)),
+                f.getDouble("size").toFloat(), f.getDouble("tracking").toFloat()
+            )
+        }
+    }
+
+    val names get() = builtin.keys
+
+    /** A font by its setting value; an uploaded font that has not arrived yet (or a name we do not know) falls back to Fraunces. */
+    fun get(key: String?): ClockFont {
+        builtin[key]?.let { return it }
+        val id = key?.removePrefix("custom:")?.takeIf { key.startsWith("custom:") }
+        if (id != null) {
+            custom[id]?.let { return it }
+            Assets.file(id)?.let { f ->
+                return ClockFont(FontFamily(Font(f)), 140f, 0f).also { custom[id] = it }
+            }
+        }
+        return builtin["Fraunces"] ?: ClockFont(FontFamily.Serif, 150f, 0f)
+    }
+}
+
+val ClockFonts: Map<String, ClockFont> get() = Fonts.names.associateWith { Fonts.get(it) }
 
 /**
  * The layout is designed for 1280×800 (like the mockup). All sizes are in "design points"

@@ -1,0 +1,22 @@
+[
+  { "name": "Fraunces", "file": "Fraunces-Light.ttf", "size": 150, "tracking": -0.035 },
+  { "name": "Space Grotesk", "file": "SpaceGrotesk-Light.ttf", "size": 146, "tracking": -0.06 },
+  { "name": "Outfit", "file": "Outfit-Thin.ttf", "size": 162, "tracking": -0.02 },
+  { "name": "Bebas Neue", "file": "BebasNeue-Regular.ttf", "size": 176, "tracking": 0.01 },
+  { "name": "Anton", "file": "Anton-Regular.ttf", "size": 140, "tracking": 0 },
+  { "name": "Poppins", "file": "Poppins-Light.ttf", "size": 132, "tracking": -0.03 },
+  { "name": "Lato", "file": "Lato-Light.ttf", "size": 150, "tracking": -0.03 },
+  { "name": "Barlow Condensed", "file": "BarlowCondensed-Light.ttf", "size": 172, "tracking": -0.01 },
+  { "name": "Rajdhani", "file": "Rajdhani-Light.ttf", "size": 160, "tracking": -0.02 },
+  { "name": "DM Serif Display", "file": "DMSerifDisplay-Regular.ttf", "size": 142, "tracking": -0.02 },
+  { "name": "Abril Fatface", "file": "AbrilFatface-Regular.ttf", "size": 132, "tracking": -0.01 },
+  { "name": "Archivo Black", "file": "ArchivoBlack-Regular.ttf", "size": 118, "tracking": -0.03 },
+  { "name": "Righteous", "file": "Righteous-Regular.ttf", "size": 134, "tracking": -0.01 },
+  { "name": "Pacifico", "file": "Pacifico-Regular.ttf", "size": 112, "tracking": 0 },
+  { "name": "Lobster", "file": "Lobster-Regular.ttf", "size": 140, "tracking": 0 },
+  { "name": "Share Tech Mono", "file": "ShareTechMono-Regular.ttf", "size": 134, "tracking": -0.04 },
+  { "name": "Space Mono", "file": "SpaceMono-Regular.ttf", "size": 116, "tracking": -0.05 },
+  { "name": "VT323", "file": "VT323-Regular.ttf", "size": 182, "tracking": 0 },
+  { "name": "Audiowide", "file": "Audiowide-Regular.ttf", "size": 112, "tracking": -0.02 },
+  { "name": "Michroma", "file": "Michroma-Regular.ttf", "size": 92, "tracking": -0.04 }
+]

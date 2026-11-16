@@ -3,11 +3,45 @@ const TINTS = [
   ['Graphite', '#3A3A3D'], ['Ocean', '#2F4A8A'], ['Indigo', '#3A3478'], ['Lavender', '#5E4B8B'], ['Rose', '#7A4458'],
   ['Terracotta', '#7A3E2E'], ['Amber', '#8A5A2B'], ['Sand', '#7A6A4A'], ['Sage', '#4E6B5C'], ['Emerald', '#1F5E4E']
 ];
-const FONTS = {
-  'Fraunces': { family: 'Fraunces, serif', weight: 300, track: '-0.035em' },
-  'Space Grotesk': { family: '"Space Grotesk", sans-serif', weight: 300, track: '-0.06em' },
-  'Outfit': { family: 'Outfit, sans-serif', weight: 100, track: '-0.02em' }
-};
+// Clock fonts: the 20 bundled ones (shared/fonts, the same files as on the tablet) plus fonts the user uploaded.
+// Keys are font names, uploaded ones are "custom:<id>". Filled by loadFonts().
+let FONTS = {};
+let BUILTIN_FONTS = [];
+
+async function loadFonts() {
+  if (!BUILTIN_FONTS.length) BUILTIN_FONTS = await fetch('/fonts/fonts.json').then((r) => r.json()).catch(() => []);
+  const css = [];
+  const map = {};
+  for (const f of BUILTIN_FONTS) {
+    const fam = 'LD ' + f.name;
+    css.push(`@font-face{font-family:"${fam}";src:url("/fonts/${f.file}");font-display:swap}`);
+    map[f.name] = { family: `"${fam}"`, weight: 400, track: f.tracking + 'em', size: f.size };
+  }
+  for (const f of cfg.fonts || []) {
+    const fam = 'LD custom ' + f.id;
+    css.push(`@font-face{font-family:"${fam}";src:url("/asset/${f.id}");font-display:swap}`);
+    map['custom:' + f.id] = { family: `"${fam}"`, weight: 400, track: '0em', size: 140, label: f.name, custom: f.id };
+  }
+  let tag = document.getElementById('clockFonts');
+  if (!tag) { tag = document.createElement('style'); tag.id = 'clockFonts'; document.head.appendChild(tag); }
+  tag.textContent = css.join('');
+  FONTS = map;
+}
+
+const fontLabel = (key) => (FONTS[key] && FONTS[key].label) || key;
+
+// A photo or font file as it is (the server checks what it really is).
+async function upload(kind, file) {
+  const res = await fetch(`/api/assets?kind=${kind}&name=${encodeURIComponent(file.name)}`, {
+    method: 'POST', headers: { 'X-Lumen': '1', 'Content-Type': 'application/octet-stream' }, body: file
+  });
+  const j = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(j.error || res.statusText);
+  cfg = await api('GET', '/api/config');
+  base = clone(cfg);
+  await loadFonts();
+  return j;
+}
 const STEP_TYPES = {
   app: 'Open app', run: 'Open file or folder', url: 'Open web page',
   keys: 'Keyboard shortcut', text: 'Type text', media: 'Media and volume',
@@ -59,7 +93,8 @@ function svg(name) {
 }
 
 async function api(method, url, body) {
-  const res = await fetch(url, { method, headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined });
+  // X-Lumen: the server accepts API calls only with this header, which other web pages cannot send to it.
+  const res = await fetch(url, { method, headers: body ? { 'Content-Type': 'application/json', 'X-Lumen': '1' } : { 'X-Lumen': '1' }, body: body ? JSON.stringify(body) : undefined });
   const j = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(j.error || res.statusText);
   return j;
@@ -124,7 +159,7 @@ const MEDIA_STYLES = [
 
 function applyTheme() {
   const tint = (TINTS.find(([n]) => n === cfg.theme.tint) || TINTS[9])[1];
-  const f = FONTS[cfg.theme.clockFont] || FONTS.Fraunces;
+  const f = FONTS[cfg.theme.clockFont] || FONTS.Fraunces || { family: 'Fraunces, serif', weight: 300, track: '-0.035em' };
   const r = document.documentElement.style;
   r.setProperty('--tint', tint);
   r.setProperty('--clock-font', f.family);
@@ -134,7 +169,7 @@ function applyTheme() {
 
 function renderLook() {
   $('#tints').innerHTML = TINTS.map(([n, c]) => `<button class="swatch ${cfg.theme.tint === n ? 'sel' : ''}" data-tint="${n}"><i style="background:${c}"></i>${n}</button>`).join('');
-  $('#fonts').innerHTML = Object.entries(FONTS).map(([n, f]) => `<button class="font ${cfg.theme.clockFont === n ? 'sel' : ''}" data-font="${n}"><span style="font-family:${f.family.replace(/"/g, '&quot;')};font-weight:${f.weight};letter-spacing:${f.track}">21:14</span><small>${n}</small></button>`).join('');
+  $('#fonts').innerHTML = Object.entries(FONTS).map(([n, f]) => `<button class="font ${cfg.theme.clockFont === n ? 'sel' : ''}" data-font="${esc(n)}"><span style="font-family:${f.family.replace(/"/g, '&quot;')};font-weight:${f.weight};letter-spacing:${f.track};font-size:${Math.round(46 * 150 / (f.size || 150))}px">21:14</span><small>${esc(fontLabel(n))}</small>${f.custom ? `<span class="x" data-delfont="${f.custom}" title="Remove">✕</span>` : ''}</button>`).join('');
   $('#medias').innerHTML = MEDIA_STYLES.map(([id, name, desc]) => `<button class="media ${cfg.theme.media === id ? 'sel' : ''}" data-media="${id}">
     <div class="mini ${id}"><i class="art"></i><span><b></b><b></b><em></em></span>${id === 'volume' ? '<i class="vbar"><i></i></i>' : ''}</div>
     <strong>${name}</strong><small>${desc}</small></button>`).join('');
@@ -154,7 +189,29 @@ $('#tints').onclick = (e) => {
   cfg.theme.tint = b.dataset.tint;
   applyTheme(); renderLook(); save();
 };
-$('#fonts').onclick = (e) => {
+$('#fontFile').onchange = async (e) => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  try {
+    const a = await upload('font', f);
+    cfg.theme.clockFont = 'custom:' + a.id;
+    applyTheme(); renderLook(); save();
+    toast('Font added');
+  } catch (err) { toast(err.message); }
+};
+$('#fonts').onclick = async (e) => {
+  const del = e.target.closest('[data-delfont]');
+  if (del) {
+    e.stopPropagation();
+    if (!confirm('Remove this font?')) return;
+    try {
+      await api('POST', '/api/fonts/remove', { id: del.dataset.delfont });
+      cfg = await api('GET', '/api/config'); base = clone(cfg);
+      await loadFonts(); applyTheme(); renderLook();
+    } catch (err) { toast(err.message); }
+    return;
+  }
   const b = e.target.closest('[data-font]');
   if (!b) return;
   cfg.theme.clockFont = b.dataset.font;
@@ -174,6 +231,70 @@ $('#citySearch').onclick = async () => {
     };
   } catch (e) { toast(e.message); }
 };
+
+// ---------- screensaver ----------
+
+const SAVER_POS = ['top-left', 'top', 'top-right', 'left', 'center', 'right', 'bottom-left', 'bottom', 'bottom-right'];
+const SAVER_BG = [['black', 'Black'], ['tint', 'Background color'], ['photo', 'Photo']];
+const SAVER_COLORS = [['white', 'White'], ['warm', 'Warm'], ['tint', 'Background color']];
+
+function renderSaver() {
+  const s = cfg.saver;
+  $('#saverBg').innerHTML = SAVER_BG.map(([id, n]) => `<button class="${s.background === id ? 'sel' : ''}" data-bg="${id}">${n}</button>`).join('');
+  $('#saverColor').innerHTML = SAVER_COLORS.map(([id, n]) => `<button class="${s.color === id ? 'sel' : ''}" data-color="${id}">${n}</button>`).join('');
+  $('#saverPos').innerHTML = SAVER_POS.map((p) => `<button class="${s.position === p ? 'sel' : ''}" data-pos="${p}" title="${p}"></button>`).join('');
+  $('#saverFont').innerHTML = `<option value="">Same as the home screen (${esc(fontLabel(cfg.theme.clockFont))})</option>` +
+    Object.keys(FONTS).map((k) => `<option value="${esc(k)}" ${s.font === k ? 'selected' : ''}>${esc(fontLabel(k))}</option>`).join('');
+  $('#saverSize').value = s.size;
+  $('#saverDim').value = s.dim;
+  $('#saverPhotoInfo').textContent = s.photo ? 'Photo uploaded' : 'No photo yet';
+  $('#saverDimRow').hidden = s.background !== 'photo';
+  document.querySelectorAll('[data-sv]').forEach((c) => { c.checked = !!s[c.dataset.sv]; });
+  renderSaverPreview();
+}
+
+function renderSaverPreview() {
+  const s = cfg.saver;
+  const f = FONTS[s.font || cfg.theme.clockFont] || FONTS.Fraunces || { family: 'serif', track: '0', size: 150 };
+  const tint = (TINTS.find(([n]) => n === cfg.theme.tint) || TINTS[9])[1];
+  const color = s.color === 'tint' ? `color-mix(in srgb, ${tint} 55%, white)` : s.color === 'warm' ? '#ffd9a8' : '#fff';
+  const [v, h] = s.position.includes('-') ? s.position.split('-') : (['top', 'bottom'].includes(s.position) ? [s.position, 'center'] : ['center', s.position]);
+  const place = { top: 'top:0', bottom: 'bottom:0', center: 'top:50%' }[v] + ';' + { left: 'left:0', right: 'right:0', center: 'left:50%' }[h];
+  const shift = `translate(${h === 'center' ? '-50%' : '0'},${v === 'center' ? '-50%' : '0'})`;
+  const align = { left: 'flex-start', right: 'flex-end', center: 'center' }[h];
+  // On the tablet the clock is (size %) of the font's own size, in a 1280-wide screen.
+  const px = ((f.size || 150) * 1.25 * s.size / 100) / 1280 * 100;
+  const now = new Date();
+  const time = now.toTimeString().slice(0, s.seconds ? 8 : 5);
+  const bg = s.background === 'photo' && s.photo ? `<div class="photo" style="background-image:url('/asset/${s.photo}')"></div><div class="shade" style="opacity:${s.dim / 100}"></div>`
+    : s.background === 'tint' ? `<div class="photo" style="background:radial-gradient(circle at 20% 20%, ${tint}, #050505 70%)"></div>` : '';
+  $('#saverPreview').innerHTML = bg + `<div class="clock" style="${place};transform:${shift};align-items:${align};color:${color}">
+    <div class="t" style="font-family:${f.family.replace(/"/g, '&quot;')};letter-spacing:${f.track};font-size:${px}cqw">${time}</div>
+    ${s.date ? `<div class="d">${now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</div>` : ''}
+    ${s.weather ? `<div class="w">${esc(cfg.weather.city)} · 8° · Cloudy</div>` : ''}
+    ${s.claude ? '<div class="w">Claude · 5 h 34 % · week 12 %</div>' : ''}</div>`;
+}
+
+const saverSet = (k, v) => { cfg.saver[k] = v; renderSaver(); save(); };
+$('#saverBg').onclick = (e) => {
+  const b = e.target.closest('[data-bg]');
+  if (!b) return;
+  if (b.dataset.bg === 'photo' && !cfg.saver.photo) return $('#saverPhoto').click();
+  saverSet('background', b.dataset.bg);
+};
+$('#saverColor').onclick = (e) => { const b = e.target.closest('[data-color]'); if (b) saverSet('color', b.dataset.color); };
+$('#saverPos').onclick = (e) => { const b = e.target.closest('[data-pos]'); if (b) saverSet('position', b.dataset.pos); };
+$('#saverFont').onchange = (e) => saverSet('font', e.target.value);
+$('#saverSize').oninput = (e) => { cfg.saver.size = Number(e.target.value); renderSaverPreview(); save(); };
+$('#saverDim').oninput = (e) => { cfg.saver.dim = Number(e.target.value); renderSaverPreview(); save(); };
+document.querySelectorAll('[data-sv]').forEach((c) => { c.onchange = () => saverSet(c.dataset.sv, c.checked); });
+$('#saverPhoto').onchange = async (e) => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  try { await upload('photo', f); renderSaver(); toast('Photo uploaded – the tablet gets it in a moment'); } catch (err) { toast(err.message); }
+};
+$('#saverTry').onclick = () => api('POST', '/api/saver/show').then(() => toast('Shown on the tablet')).catch((e) => toast(e.message));
 
 // ---------- panel preview ----------
 
@@ -237,7 +358,7 @@ function slotHtml(i) {
   const sel = selected === i ? ' sel' : '';
   if (!t) return `<div class="slot empty${sel}" data-slot="${i}" draggable="false">+</div>`;
   const on = status.tiles[id] ? ' on' : '';
-  const kind = t.kind === 'light' ? 'light' : t.kind === 'page' ? 'page' : t.kind === 'display' ? 'monitor' : t.toggle ? 'toggle' : '';
+  const kind = t.kind === 'light' ? 'light' : t.kind === 'page' ? 'page' : t.kind === 'display' ? 'monitor' : t.kind === 'touchpad' ? 'touchpad' : t.kind === 'presenter' ? 'slides' : t.kind === 'draw' ? 'drawing' : t.toggle ? 'toggle' : '';
   return `<div class="slot${on}${sel}" data-slot="${i}" draggable="true">${svg(t.icon)}<span>${esc(t.label)}</span><span class="kind">${kind}</span></div>`;
 }
 
@@ -325,12 +446,15 @@ function renderInspector() {
   box.innerHTML = `
     <label class="field">Name<input id="tLabel" value="${esc(t.label)}" maxlength="24"></label>
     <div class="field" style="display:block;color:var(--g2);font-size:12px;margin-bottom:6px">Icon</div>
-    <div class="icons" id="tIcons">${Object.keys(icons).filter((n) => !['play', 'pause', 'prev', 'next', 'plus'].includes(n)).map((n) => `<button class="${t.icon === n ? 'sel' : ''}" data-icon="${n}" title="${n}">${svg(n)}</button>`).join('')}</div>
+    <div class="icons" id="tIcons">${Object.keys(icons).filter((n) => !['play', 'pause', 'prev', 'next', 'plus', 'backspace', 'shift', 'enter', 'chevron-up', 'chevron-down', 'chevron-left', 'chevron-right', 'windows'].includes(n)).map((n) => `<button class="${t.icon === n ? 'sel' : ''}" data-icon="${n}" title="${n}">${svg(n)}</button>`).join('')}</div>
     <label class="field">Action<select id="tKind">
       <option value="macro" ${t.kind === 'macro' ? 'selected' : ''}>Macro (steps on the PC)</option>
       <option value="light" ${t.kind === 'light' ? 'selected' : ''}>Light (on / off)</option>
       <option value="page" ${t.kind === 'page' ? 'selected' : ''}>Go to page</option>
       <option value="display" ${t.kind === 'display' ? 'selected' : ''}>Second monitor (PC screen)</option>
+      <option value="touchpad" ${t.kind === 'touchpad' ? 'selected' : ''}>Touchpad and keyboard</option>
+      <option value="presenter" ${t.kind === 'presenter' ? 'selected' : ''}>Presentation remote</option>
+      <option value="draw" ${t.kind === 'draw' ? 'selected' : ''}>Drawing tablet</option>
     </select></label>
     <div id="kindBox"></div>
     <div class="divider"></div>
@@ -352,6 +476,12 @@ function renderInspector() {
     $('#tPage').onchange = (e) => { t.page = e.target.value || null; save(); };
   } else if (t.kind === 'display') {
     kindBox.innerHTML = '<p class="muted">The tablet switches to the PC\'s second monitor. Tap = click, drag = mouse drag, hold = right click, two fingers = scroll. Back to the panel: tap with three fingers.</p>';
+  } else if (t.kind === 'touchpad') {
+    kindBox.innerHTML = '<p class="muted">The tablet becomes a touchpad for the PC. Tap = click, two fingers = scroll or right click, pinch = zoom, double tap and hold = drag, three fingers = switch apps. The keyboard button in the corner opens a full keyboard.</p>';
+  } else if (t.kind === 'draw') {
+    kindBox.innerHTML = '<p class="muted">The tablet\'s surface becomes one whole PC monitor: a finger on it draws (left mouse button held), like a graphics tablet. Works in Paint, Photoshop, Krita and others. Hover mode only moves the pointer.</p>';
+  } else if (t.kind === 'presenter') {
+    kindBox.innerHTML = '<p class="muted">Big Next and Back buttons for slides (PowerPoint, Google Slides, PDF), a timer and a pointer pad. The tablet\'s volume buttons also switch slides.</p>';
   } else {
     kindBox.innerHTML = `<label class="check"><input type="checkbox" id="tToggle" ${t.toggle ? 'checked' : ''}>Toggle (on / off, lights up like a light)</label>
       <div class="field" style="color:var(--g2);font-size:12px;margin-bottom:8px">${t.toggle ? 'Steps when turning on' : 'Steps'}</div><div id="stepsOn"></div>
@@ -381,7 +511,7 @@ function renderInspector() {
   };
   $('#tKind').onchange = (e) => { t.kind = e.target.value; renderPreview(); renderInspector(); save(); };
   $('#tTest').onclick = async () => {
-    if (t.kind === 'page' || t.kind === 'display') return toast('This only works on the tablet');
+    if (['page', 'display', 'touchpad', 'presenter', 'draw'].includes(t.kind)) return toast('This only works on the tablet');
     try { await api('POST', '/api/run', { tile: id }); toast('Done'); } catch (e) { toast(e.message); }
   };
   $('#tRemove').onclick = () => { page().tiles[selected] = null; renderPreview(); renderInspector(); save(); };
@@ -632,7 +762,7 @@ $('#saveClient').onclick = async () => {
 $('#spotifyLogout').onclick = () => api('POST', '/api/spotify/logout').catch((e) => toast(e.message));
 
 function renderTablet() {
-  $('#pendingList').innerHTML = status.pending.length ? status.pending.map((p) => `<div class="item"><div class="grow">${esc(p.name)}<small>${esc(p.ip)}</small></div><button class="btn small primary" data-approve="${esc(p.deviceId)}">Allow</button></div>`).join('') : '<p class="muted">Nothing is waiting. When you open the app on the tablet, it shows up here.</p>';
+  $('#pendingList').innerHTML = status.pending.length ? status.pending.map((p) => `<div class="item"><div class="grow">${esc(p.name)}<small>${esc(p.ip)} · code <b>${esc(p.code || '')}</b> – allow only if the tablet shows the same code</small></div><button class="btn small primary" data-approve="${esc(p.deviceId)}">Allow</button></div>`).join('') : '<p class="muted">Nothing is waiting. When you open the app on the tablet, it shows up here.</p>';
   const online = new Set(status.tablets.map((t) => t.deviceId));
   $('#allowedList').innerHTML = status.allowed.length ? status.allowed.map((d) => `<div class="item"><div class="grow">${esc(d.name)}<small>${online.has(d.deviceId) ? 'connected' : 'offline'}</small></div><button class="btn small ghost danger" data-remove="${esc(d.deviceId)}">Remove</button></div>`).join('') : '<p class="muted">None yet.</p>';
   $('#pendingBadge').hidden = status.pending.length === 0;
@@ -641,6 +771,48 @@ function renderTablet() {
   $('#conn').classList.toggle('on', conn);
   $('#connText').textContent = conn ? status.tablets[0].name + ' connected' : status.pending.length ? 'Tablet waiting for approval' : 'Tablet not connected';
 }
+// How the tablet can reach this PC: addresses per adapter, the Wi-Fi and whether Windows sees the network as public.
+async function renderNetwork() {
+  try {
+    const n = await api('GET', '/api/network');
+    const rows = n.addresses.map((a) => `<div class="item"><div class="grow"><b>${esc(a.ip)}:${n.port}</b><small>${esc(a.adapter)}</small></div><button class="btn small ghost" data-copy="${esc(a.ip)}:${n.port}">Copy</button></div>`);
+    if (!rows.length) rows.push('<p class="muted">This PC is not connected to any network.</p>');
+    const facts = [`PC name: <b>${esc(n.pc)}</b>`];
+    if (n.wifi) facts.push(`Wi-Fi: <b>${esc(n.wifi)}</b> – the tablet must be on the same one`);
+    if (n.usb) facts.push('A tablet is connected by USB cable');
+    for (const p of n.networks) {
+      if (p.category === 'Public') facts.push(`Windows treats "${esc(p.network)}" as a public network. Lumen Desk is allowed there, but school, hotel and café Wi-Fi often stop devices from seeing each other – then use the USB cable.`);
+    }
+    $('#netList').innerHTML = rows.join('') + `<p class="muted" style="margin-top:10px">${facts.join('<br>')}</p>`;
+  } catch (e) { $('#netList').innerHTML = `<p class="muted">${esc(e.message)}</p>`; }
+}
+$('#reloadNet').onclick = renderNetwork;
+$('#netList').onclick = async (e) => {
+  const t = e.target.dataset.copy;
+  if (!t) return;
+  try { await navigator.clipboard.writeText(t); toast('Copied'); } catch { toast(t); }
+};
+
+async function renderBackups() {
+  try {
+    const list = await api('GET', '/api/backups');
+    $('#backupList').innerHTML = list.length
+      ? list.map((b) => `<div class="item"><div class="grow">${esc(new Date(b.at).toLocaleString())}<small>${esc(b.pages.join(', '))} · ${b.tiles} tiles</small></div><button class="btn small ghost" data-restore="${esc(b.file)}">Restore</button></div>`).join('')
+      : '<p class="muted">No copies yet – the first one is made with the next change.</p>';
+  } catch (e) { $('#backupList').innerHTML = `<p class="muted">${esc(e.message)}</p>`; }
+}
+$('#backupList').onclick = async (e) => {
+  const f = e.target.dataset.restore;
+  if (!f || !confirm('Bring back this layout? The current one is kept as a copy too.')) return;
+  try {
+    await api('POST', '/api/backups/restore', { file: f });
+    cfg = await api('GET', '/api/config');
+    base = clone(cfg);
+    selected = null; renderPanel(); renderBackups();
+    toast('Layout restored');
+  } catch (err) { toast(err.message); }
+};
+
 async function renderLog() {
   try {
     const l = await api('GET', '/api/log');
@@ -722,15 +894,16 @@ function showView() {
   document.querySelectorAll('.view').forEach((s) => { s.hidden = s.id !== 'view-' + v; });
   document.querySelectorAll('#nav a').forEach((a) => a.classList.toggle('active', a.dataset.view === v));
   if (v === 'look') renderLook();
+  if (v === 'saver') renderSaver();
   if (v === 'lights') renderLights();
   if (v === 'spotify') renderSpotify();
-  if (v === 'tablet') { renderTablet(); renderLog(); renderNotify(); renderTools(); }
+  if (v === 'tablet') { renderTablet(); renderNetwork(); renderBackups(); renderLog(); renderNotify(); renderTools(); }
 }
 window.addEventListener('hashchange', showView);
 
 function connect() {
-  const ws = new WebSocket(`ws://${location.host}/ws?role=panel`);
-  ws.onmessage = (e) => {
+  const ws = new WebSocket(`ws://${location.host}/ws`);
+  ws.onmessage = async (e) => {
     const m = JSON.parse(e.data);
     // Settings changed elsewhere (another window, tablet, server): take them over unless we are saving our own.
     if (m.t === 'config') {
@@ -739,6 +912,7 @@ function connect() {
       if (JSON.stringify(m.config) === JSON.stringify(cfg)) return;
       cfg = m.config;
       if (pageIdx >= cfg.pages.length) pageIdx = 0;
+      await loadFonts();
       applyTheme();
       renderPanel();
       showView();
@@ -758,6 +932,7 @@ function connect() {
 (async function start() {
   [cfg, icons] = await Promise.all([api('GET', '/api/config'), api('GET', '/api/icons')]);
   base = clone(cfg);
+  await loadFonts();
   applyTheme();
   renderPanel();
   showView();

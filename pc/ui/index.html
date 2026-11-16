@@ -20,6 +20,7 @@
     <nav id="nav">
       <a href="#panel" data-view="panel">Panel</a>
       <a href="#look" data-view="look">Appearance</a>
+      <a href="#saver" data-view="saver">Screensaver</a>
       <a href="#lights" data-view="lights">Lights</a>
       <a href="#spotify" data-view="spotify">Spotify</a>
       <a href="#tablet" data-view="tablet">Tablet <span class="badge" id="pendingBadge" hidden>1</span></a>
@@ -56,7 +57,9 @@
       </div>
       <div class="card glass">
         <h2>Clock font</h2>
+        <p class="muted">For the clock on the tablet's home page. Your own font: upload a TTF or OTF file.</p>
         <div class="fonts" id="fonts"></div>
+        <div class="actions"><label class="btn small">Upload a font…<input type="file" id="fontFile" accept=".ttf,.otf" hidden></label></div>
       </div>
       <div class="card glass">
         <h2>Media tile</h2>
@@ -68,6 +71,39 @@
         <p class="muted">Current: <b id="cityNow"></b></p>
         <div class="row"><input id="cityInput" placeholder="Type a city, e.g. London"><button class="btn" id="citySearch">Search</button></div>
         <div class="list" id="cityResults"></div>
+      </div>
+    </section>
+
+    <section id="view-saver" class="view" hidden>
+      <h1>Screensaver</h1>
+      <p class="muted">The big clock the tablet shows when nobody touches it (and from the clock button). One touch closes it.</p>
+      <div class="saver-layout">
+        <div class="card glass">
+          <div class="saver-preview" id="saverPreview"></div>
+          <div class="actions"><button class="btn small" id="saverTry">Show it on the tablet now</button></div>
+        </div>
+        <div class="card glass saver-controls">
+          <h2>Background</h2>
+          <div class="seg" id="saverBg"></div>
+          <div class="row" id="saverPhotoRow">
+            <label class="btn small">Choose a photo…<input type="file" id="saverPhoto" accept="image/jpeg,image/png,image/webp" hidden></label>
+            <span class="muted" id="saverPhotoInfo"></span>
+          </div>
+          <label class="field" id="saverDimRow">Darken the photo <input type="range" id="saverDim" min="0" max="90"></label>
+          <h2>Clock</h2>
+          <label class="field">Font <select id="saverFont"></select></label>
+          <label class="field">Size <input type="range" id="saverSize" min="40" max="220"></label>
+          <div class="field">Position</div>
+          <div class="posgrid" id="saverPos"></div>
+          <div class="field">Color</div>
+          <div class="seg" id="saverColor"></div>
+          <h2>Show</h2>
+          <label class="check"><input type="checkbox" data-sv="date">Date</label>
+          <label class="check"><input type="checkbox" data-sv="weather">Weather</label>
+          <label class="check"><input type="checkbox" data-sv="claude">Claude usage</label>
+          <label class="check"><input type="checkbox" data-sv="seconds">Seconds</label>
+          <label class="check"><input type="checkbox" data-sv="drift">Move a little every minute (protects the screen)</label>
+        </div>
       </div>
     </section>
 
@@ -103,6 +139,12 @@
     <section id="view-tablet" class="view" hidden>
       <h1>Tablet</h1>
       <div class="card glass">
+        <h2>Connect the tablet</h2>
+        <p class="muted">The tablet finds this PC by itself when both are on the same Wi-Fi, or over a USB cable. If it does not, enter one of these addresses on the tablet (⚙ → Connection).</p>
+        <div class="list" id="netList"></div>
+        <div class="actions"><button class="btn small" id="reloadNet">Refresh</button></div>
+      </div>
+      <div class="card glass">
         <h2>Waiting for approval</h2>
         <div class="list" id="pendingList"></div>
       </div>
@@ -121,6 +163,11 @@
         <p class="muted">Optional tools, downloaded from their official sources with one click.</p>
         <div class="list" id="toolList"></div>
         <p class="muted" style="margin-top:12px">The second monitor also needs a virtual display in Windows: install the free <a href="https://github.com/VirtualDrivers/Virtual-Display-Driver/releases" target="_blank" rel="noopener">Virtual Display Driver</a> (VDD.Control → Install Driver), then press Win + P → Extend.</p>
+      </div>
+      <div class="card glass">
+        <h2>Earlier layouts</h2>
+        <p class="muted">Lumen Desk keeps a copy of your pages and tiles before they change (one every 10 minutes, the last 30). If something looks reset, bring back an earlier one. Paired tablets stay paired.</p>
+        <div class="list" id="backupList"></div>
       </div>
       <div class="card glass">
         <h2>Server status</h2>

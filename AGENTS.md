@@ -21,7 +21,7 @@ Do the steps in order, check each one before moving on, and tell the user what y
 4. **Start the server**: `pc/Setup.cmd` does `npm install` + `install.ps1` (desktop icon + start with Windows) + starts it – run it only if the user agrees; otherwise start it with `node run.js` in `pc/`. Confirm `http://127.0.0.1:47801/ping` answers.
 5. **Build the tablet app**: needs JDK 17 and the Android SDK (platform 34). Create `tablet/local.properties` with `sdk.dir=…` if missing, then `./gradlew assembleRelease` in `tablet/`.
 6. **Install on the tablet**: the user enables Developer options → USB debugging and connects the tablet. Run `adb shell am force-stop com.lumen.desk` **before** every `adb install -r` – otherwise old processes of the app can keep running and fight over the connection (only a reboot clears them).
-7. **Pair**: open the app on the tablet; it shows "Allow the tablet on the PC". The user approves it in the settings window under **Tablet**.
+7. **Pair**: open the app on the tablet; it shows "Allow the tablet on the PC" with a 6-digit code. The user approves it in the settings window under **Tablet** after checking that the code there is the same.
 8. **Optional setup** the user does in the settings window: Spotify (Client ID + login), Yeelight bulbs, tiles and pages.
 
 ## Rules – never do these
@@ -33,6 +33,7 @@ Do the steps in order, check each one before moving on, and tell the user what y
 
 ## Working on the code
 - Server: `node --check` every changed file; restart by killing the process on port 47801 – the supervisor (`run.js`) starts it again within a second.
+- Security: the tablet protocol is encrypted (`pc/lib/secure.js` ⇄ `tablet/.../Secure.kt`, must stay identical); never add a plain-text path, and never trust a tablet by its `deviceId` alone. The settings server (port 47803) must stay bound to 127.0.0.1 and keep its Host/Origin/`X-Lumen` checks. Test copy of the server: `LUMEN_PORT=48801 LUMEN_SETTINGS_PORT=48803 LUMEN_QUIET=1 node server.js`.
 - Settings UI: plain JS, no framework; saves are sent as path/value patches (`PATCH /api/config`), so never replace the whole config.
 - Tablet: the layout is designed for 1280×800 and scaled (`.u` / `.us` units in `Style.kt`). Android 7 has no variable fonts, so static font files are bundled.
 - Installer: `npm run installer` in `pc/` (needs Inno Setup 6). In the packaged exe `lib/paths.js` puts data and tools in `%APPDATA%\Lumen Desk`; never write next to the exe (Program Files is read-only).

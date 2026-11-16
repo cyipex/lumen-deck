@@ -18,9 +18,11 @@
         </intent>
     </queries>
 
+    <!-- allowBackup off: "adb backup" cannot copy the pairing key out of the tablet. -->
     <application
         android:label="Lumen Desk"
         android:icon="@drawable/ic_launcher"
+        android:allowBackup="false"
         android:usesCleartextTraffic="true"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
 

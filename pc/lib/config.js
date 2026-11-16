@@ -39,14 +39,27 @@ function defaults() {
       explorer: { label: 'Files', icon: 'folder', kind: 'macro', steps: [{ type: 'keys', combo: 'win+e' }] },
       browser: { label: 'Browser', icon: 'globe', kind: 'macro', steps: [{ type: 'url', url: 'https://www.google.com' }] },
       sleep: { label: 'Sleep PC', icon: 'power', kind: 'macro', steps: [{ type: 'system', cmd: 'sleep' }] },
-      monitor: { label: 'Second Monitor', icon: 'monitor', kind: 'display' }
+      monitor: { label: 'Second Monitor', icon: 'monitor', kind: 'display' },
+      touchpad: { label: 'Touchpad', icon: 'touchpad', kind: 'touchpad' },
+      presenter: { label: 'Presentation', icon: 'slides', kind: 'presenter' },
+      draw: { label: 'Drawing', icon: 'pen', kind: 'draw' }
     },
     lights: [],
     devices: { allowed: [] },
     spotify: { clientId: '' },
-    notify: { enabled: true, muted: [] }
+    notify: { enabled: true, muted: [] },
+    // The tablet's clock screensaver. font '' = the same as the home clock; photo = an uploaded file's id.
+    saver: {
+      background: 'black', photo: null, dim: 35, font: '', position: 'center', size: 100, color: 'white',
+      date: true, weather: true, claude: false, seconds: false, drift: true
+    },
+    // Custom clock fonts uploaded in the settings window: [{ id, name }].
+    fonts: []
   };
 }
+
+const POSITIONS = ['top-left', 'top', 'top-right', 'left', 'center', 'right', 'bottom-left', 'bottom', 'bottom-right'];
+const clampNum = (v, lo, hi, dflt) => (Number.isFinite(Number(v)) ? Math.max(lo, Math.min(hi, Math.round(Number(v)))) : dflt);
 
 let config = null;
 const listeners = new Set();
@@ -63,10 +76,28 @@ function normalize(c) {
   c.tiles = c.tiles && typeof c.tiles === 'object' ? c.tiles : {};
   c.lights = Array.isArray(c.lights) ? c.lights : [];
   c.devices = { allowed: [], ...(c.devices || {}) };
+  // This PC's id: lets a tablet that knows several PCs keep a separate pairing key and layout for each.
+  // Not a secret (it is in the announcement); trust still comes only from the pairing key.
+  if (typeof c.pcId !== 'string' || !/^[a-f0-9]{16}$/.test(c.pcId)) c.pcId = crypto.randomBytes(8).toString('hex');
   c.spotify = { ...d.spotify, ...(c.spotify || {}) };
   c.notify = { ...d.notify, ...(c.notify || {}) };
   c.notify.enabled = c.notify.enabled !== false;
   c.notify.muted = Array.isArray(c.notify.muted) ? c.notify.muted.filter((x) => typeof x === 'string') : [];
+  c.fonts = (Array.isArray(c.fonts) ? c.fonts : [])
+    .filter((f) => f && /^[a-f0-9]{32}$/.test(f.id))
+    .map((f) => ({ id: f.id, name: String(f.name || 'Custom font').slice(0, 40) }));
+  const s = { ...d.saver, ...(c.saver && typeof c.saver === 'object' ? c.saver : {}) };
+  c.saver = {
+    background: ['black', 'tint', 'photo'].includes(s.background) ? s.background : 'black',
+    photo: /^[a-f0-9]{32}$/.test(String(s.photo)) ? s.photo : null,
+    dim: clampNum(s.dim, 0, 90, 35),
+    font: typeof s.font === 'string' ? s.font.slice(0, 60) : '',
+    position: POSITIONS.includes(s.position) ? s.position : 'center',
+    size: clampNum(s.size, 40, 220, 100),
+    color: ['white', 'tint', 'warm'].includes(s.color) ? s.color : 'white',
+    date: s.date !== false, weather: s.weather !== false, claude: !!s.claude, seconds: !!s.seconds, drift: s.drift !== false
+  };
+  if (c.saver.background === 'photo' && !c.saver.photo) c.saver.background = 'black';
   if (!Array.isArray(c.pages) || c.pages.length === 0) c.pages = d.pages;
   // The home page is always first and there is only one.
   c.pages = c.pages.filter((p, i) => i === 0 || p.layout !== 'home');
@@ -83,25 +114,96 @@ function normalize(c) {
   for (const t of Object.values(c.tiles)) {
     t.label = t.label || '';
     t.icon = t.icon || 'star';
-    t.kind = ['light', 'page', 'macro', 'display'].includes(t.kind) ? t.kind : 'macro';
+    t.kind = ['light', 'page', 'macro', 'display', 'touchpad', 'presenter', 'draw'].includes(t.kind) ? t.kind : 'macro';
     if (!Array.isArray(t.steps)) t.steps = [];
     if (!Array.isArray(t.stepsOff)) t.stepsOff = [];
   }
   return c;
 }
 
+// Your layout must never be replaced by the defaults just because the file could not be read for a moment
+// (antivirus, backup or sync tools sometimes hold it): try again, and if it really is broken, keep a copy.
 function load() {
-  try {
-    config = normalize(JSON.parse(fs.readFileSync(FILE, 'utf8')));
-  } catch {
-    config = normalize(defaults());
-    save();
+  if (fs.existsSync(FILE)) {
+    let lastErr;
+    for (let i = 0; i < 5; i++) {
+      try {
+        const raw = JSON.parse(fs.readFileSync(FILE, 'utf8'));
+        const hadId = raw.pcId; // normalize() fills in a new id on the same object
+        config = normalize(raw);
+        if (hadId !== config.pcId) save();
+        return config;
+      } catch (e) {
+        lastErr = e;
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 200);
+      }
+    }
+    const broken = path.join(DATA_DIR, `config.broken-${stamp()}.json`);
+    try { fs.copyFileSync(FILE, broken); } catch {}
+    console.error(`Settings could not be read (${lastErr && lastErr.message}); a copy is in ${path.basename(broken)}, starting with the defaults.`);
+    const restored = latestBackup();
+    if (restored) {
+      config = restored;
+      console.error('Restored the newest backup of the settings instead.');
+      save();
+      return config;
+    }
   }
+  config = normalize(defaults());
+  save();
   return config;
+}
+
+const BACKUP_DIR = path.join(DATA_DIR, 'backups');
+const stamp = (d = new Date()) => d.toISOString().replace(/[-:]/g, '').replace('T', '-').slice(0, 15);
+
+// Before the file changes, the previous version is kept (at most one copy per 10 minutes, the newest 30),
+// so any earlier layout can be brought back from the settings window.
+function backup() {
+  if (!fs.existsSync(FILE)) return;
+  fs.mkdirSync(BACKUP_DIR, { recursive: true });
+  const list = backups();
+  if (list.length && Date.now() - list[0].at < 10 * 60000) return;
+  fs.copyFileSync(FILE, path.join(BACKUP_DIR, `config-${stamp()}.json`));
+  for (const old of backups().slice(30)) {
+    try { fs.unlinkSync(path.join(BACKUP_DIR, old.file)); } catch {}
+  }
+}
+
+// Newest first: { file, at, pages, tiles }.
+function backups() {
+  let files = [];
+  try { files = fs.readdirSync(BACKUP_DIR).filter((f) => /^config-\d{8}-\d{6}\.json$/.test(f)); } catch {}
+  return files.map((file) => {
+    let at = 0;
+    try { at = fs.statSync(path.join(BACKUP_DIR, file)).mtimeMs; } catch {}
+    return { file, at };
+  }).sort((a, b) => b.at - a.at);
+}
+
+function readBackup(file) {
+  if (!/^config-\d{8}-\d{6}\.json$/.test(String(file))) throw new Error('Unknown backup');
+  return normalize(JSON.parse(fs.readFileSync(path.join(BACKUP_DIR, file), 'utf8')));
+}
+
+function latestBackup() {
+  for (const b of backups()) {
+    try { return readBackup(b.file); } catch {}
+  }
+  return null;
+}
+
+// A backup brought back keeps today's paired tablets (their keys are not in old copies).
+function restore(file) {
+  const c = readBackup(file);
+  c.devices = get().devices;
+  c.pcId = get().pcId;
+  return set(c);
 }
 
 function save() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
+  try { backup(); } catch {}
   const tmp = FILE + '.tmp';
   fs.writeFileSync(tmp, JSON.stringify(config, null, 2));
   fs.renameSync(tmp, FILE);
@@ -146,7 +248,7 @@ function patch(ops) {
   for (const op of Array.isArray(ops) ? ops : []) {
     const path = Array.isArray(op.path) ? op.path.map(String) : [];
     if (!path.length || path.some((k) => k === '__proto__' || k === 'constructor' || k === 'prototype')) continue;
-    if (path[0] === 'devices') continue; // the list of allowed tablets is changed only by pairing
+    if (path[0] === 'devices' || path[0] === 'pcId') continue; // allowed tablets change only by pairing; the PC id never
     let o = m;
     for (const k of path.slice(0, -1)) {
       if (o[k] === null || typeof o[k] !== 'object' || Array.isArray(o[k])) o[k] = {};
@@ -166,7 +268,7 @@ function onChange(fn) {
 // The part of the configuration the tablet needs (without secrets like Spotify and the device list).
 function forTablet() {
   const c = get();
-  return { theme: c.theme, pages: c.pages, tiles: c.tiles, notify: { enabled: c.notify.enabled } };
+  return { theme: c.theme, pages: c.pages, tiles: c.tiles, notify: { enabled: c.notify.enabled }, saver: c.saver, fonts: c.fonts };
 }
 
-module.exports = { DATA_DIR, load, get, set, update, patch, onChange, forTablet, slotsFor };
+module.exports = { DATA_DIR, load, get, set, update, patch, onChange, forTablet, slotsFor, backups, readBackup, restore };
