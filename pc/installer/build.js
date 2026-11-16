@@ -65,6 +65,7 @@ Promise.resolve(rceditDone).then(() => {
   fs.cpSync(path.join(PC, 'ui'), path.join(APP, 'ui'), { recursive: true });
   fs.copyFileSync(path.join(PC, '..', 'shared', 'icons.json'), path.join(APP, 'icons.json'));
   fs.cpSync(path.join(PC, '..', 'shared', 'fonts'), path.join(APP, 'fonts'), { recursive: true });
+  copyTabletApp();
   fs.copyFileSync(path.join(PC, 'icon.ico'), path.join(APP, 'icon.ico'));
 
   step('Building the installer (Inno Setup)');
@@ -76,3 +77,27 @@ Promise.resolve(rceditDone).then(() => {
   execFileSync(iscc, ['/Q', `/DAppVersion=${VERSION}`, path.join(__dirname, 'LumenDesk.iss')], { stdio: 'inherit' });
   console.log('\nDone: ' + path.join(OUT, 'LumenDeskSetup.exe'));
 }).catch((e) => { console.error(e); process.exit(1); });
+
+// The tablet app goes along, so the PC can update the tablet over Wi-Fi. Its version is read from the APK
+// with aapt (Android SDK build tools); without them the installer is built without the tablet app.
+function copyTabletApp() {
+  const apk = path.join(PC, '..', 'tablet', 'app', 'build', 'outputs', 'apk', 'release', 'app-release.apk');
+  if (!fs.existsSync(apk)) return console.log('  (no tablet APK built – the PC will not offer tablet updates)');
+  const sdk = process.env.ANDROID_HOME || path.join(process.env.LOCALAPPDATA || '', 'LumenBuild', 'sdk');
+  let aapt = null;
+  try {
+    const bt = path.join(sdk, 'build-tools');
+    const v = fs.readdirSync(bt).sort().pop();
+    aapt = path.join(bt, v, 'aapt.exe');
+  } catch {}
+  if (!aapt || !fs.existsSync(aapt)) return console.log('  (aapt not found – the PC will not offer tablet updates)');
+  const badging = execFileSync(aapt, ['dump', 'badging', apk]).toString();
+  const code = Number((/versionCode='(\d+)'/.exec(badging) || [])[1]);
+  const buf = fs.readFileSync(apk);
+  const dir = path.join(APP, 'tablet');
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'lumen-desk.apk'), buf);
+  const sha256 = require('crypto').createHash('sha256').update(buf).digest('hex');
+  fs.writeFileSync(path.join(dir, 'version.json'), JSON.stringify({ code, sha256, size: buf.length }));
+  console.log(`  tablet app version ${code} included`);
+}

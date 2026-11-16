@@ -276,13 +276,61 @@ async function search(q) {
   return { items, total: items.length, offset: 0 };
 }
 
-// If nothing is playing, play on the computer (or on the first device Spotify knows).
+// ---------- starting Spotify on the PC ----------
+
+const { execFile, spawn } = require('child_process');
+const run = (cmd, args) => new Promise((resolve) => execFile(cmd, args, { windowsHide: true, timeout: 5000 }, (err, out) => resolve(err ? null : String(out))));
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// The desktop app (classic or Microsoft Store) registers spotify: links; without it, the web player in the browser.
+async function launch() {
+  const app = (await run('reg.exe', ['query', 'HKCU\\Software\\Classes\\spotify'])) || (await run('reg.exe', ['query', 'HKCR\\spotify']));
+  const target = app ? 'spotify:' : 'https://open.spotify.com';
+  const p = spawn('cmd.exe', ['/c', 'start', '""', target], { detached: true, stdio: 'ignore', windowsHide: true });
+  p.on('error', () => {});
+  p.unref();
+  return app ? 'app' : 'web';
+}
+
+async function devices() {
+  const d = await api('GET', '/me/player/devices');
+  return (d && d.devices) || [];
+}
+
+const pickDevice = (list) => list.find((x) => x.is_active) || list.find((x) => x.type === 'Computer') || list[0];
+
+// A device to play on; when Spotify is not open anywhere it is started on this PC and we wait for it (up to 25 s).
+async function ensureDevice() {
+  let dev = pickDevice(await devices());
+  if (dev) return dev;
+  await launch();
+  for (let i = 0; i < 25 && !dev; i++) {
+    await wait(1000);
+    dev = pickDevice(await devices().catch(() => []));
+  }
+  if (!dev) throw new Error('Spotify did not start in time – try again in a moment');
+  return dev;
+}
+
+// "Open Spotify" on the tablet, or Play while Spotify is closed: start it and continue where it stopped.
+async function open() {
+  if (!tokens) return launch();
+  const running = (await run('tasklist.exe', ['/FI', 'IMAGENAME eq Spotify.exe', '/NH'])) || '';
+  const list = await devices().catch(() => []);
+  if (!list.length || !/spotify\.exe/i.test(running)) {
+    const dev = await ensureDevice();
+    await api('PUT', '/me/player', { device_ids: [dev.id], play: true }).catch(() => {});
+  } else {
+    await api('PUT', '/me/player', { device_ids: [pickDevice(list).id], play: true }).catch(() => {});
+  }
+  setTimeout(poll, 800);
+  return 'ok';
+}
+
+// If nothing is playing, play on the computer (or on the first device Spotify knows); Spotify is started if needed.
 async function deviceQuery() {
   if (playback && playback.active) return '';
-  const d = await api('GET', '/me/player/devices');
-  const list = (d && d.devices) || [];
-  const dev = list.find((x) => x.is_active) || list.find((x) => x.type === 'Computer') || list[0];
-  if (!dev) throw new Error('Spotify is not open on any device. Open it on the PC.');
+  const dev = await ensureDevice();
   return '?device_id=' + encodeURIComponent(dev.id);
 }
 
@@ -321,4 +369,4 @@ function current() {
   return playback || { active: false };
 }
 
-module.exports = { init, setClientId, loginUrl, finishLogin, control, playlists, sources, tracks, search, playItem, logout, status, current, setActive, events };
+module.exports = { init, setClientId, loginUrl, finishLogin, control, playlists, sources, tracks, search, playItem, open, launch, logout, status, current, setActive, events };

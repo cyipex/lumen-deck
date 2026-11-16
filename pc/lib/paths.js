@@ -20,6 +20,8 @@ module.exports = {
   ICONS: packaged ? path.join(APP, 'icons.json') : path.join(PC, '..', 'shared', 'icons.json'),
   // Clock fonts shared with the tablet (fonts.json + the font files), shown in the settings preview.
   FONTS: packaged ? path.join(APP, 'fonts') : path.join(PC, '..', 'shared', 'fonts'),
+  // The tablet app offered to tablets as an update (lumen-desk.apk + version.json, made by the installer build).
+  TABLET: process.env.LUMEN_TABLET_DIR || path.join(APP, 'tablet'),
   // LUMEN_DATA_DIR: a separate data folder for a test copy of the server (pc/test).
   DATA: process.env.LUMEN_DATA_DIR || path.join(USER, 'data'),
   BIN: path.join(USER, 'bin')

@@ -13,6 +13,11 @@ const secure = require(path.join(PC, 'lib', 'secure.js'));
 
 const T = 48801, S = 48803;
 const DATA = fs.mkdtempSync(path.join(os.tmpdir(), 'lumen-test-'));
+// A pretend tablet app the PC can offer as an update.
+const TAB = fs.mkdtempSync(path.join(os.tmpdir(), 'lumen-tab-'));
+const APK = crypto.randomBytes(500000);
+fs.writeFileSync(path.join(TAB, 'lumen-desk.apk'), APK);
+fs.writeFileSync(path.join(TAB, 'version.json'), JSON.stringify({ code: 500, sha256: crypto.createHash('sha256').update(APK).digest('hex'), size: APK.length }));
 let ok = true;
 const check = (c, what) => { console.log((c ? 'PASS ' : 'FAIL ') + what); if (!c) ok = false; };
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -75,7 +80,7 @@ function tablet(deviceId, key, opts = {}) {
 (async () => {
   const srv = spawn(process.execPath, ['server.js'], {
     cwd: PC,
-    env: { ...process.env, LUMEN_PORT: T, LUMEN_SETTINGS_PORT: S, LUMEN_QUIET: '1', LUMEN_DATA_DIR: DATA },
+    env: { ...process.env, LUMEN_PORT: T, LUMEN_SETTINGS_PORT: S, LUMEN_QUIET: '1', LUMEN_DATA_DIR: DATA, LUMEN_TABLET_DIR: TAB },
     stdio: ['ignore', 'pipe', 'pipe']
   });
   srv.stderr.on('data', (d) => process.stderr.write('[server] ' + d));
@@ -159,6 +164,20 @@ function tablet(deviceId, key, opts = {}) {
     check(pieces.length > 0 && got.equals(fontBuf), `asset arrives complete (${pieces.length} pieces)`);
     check(crypto.createHash('sha256').update(got).digest('hex').slice(0, 32) === up.id, 'asset id is its content hash');
 
+    // Tablet app update over the encrypted connection.
+    t2.send({ t: 'version', code: 600 });
+    await wait(300);
+    check(!t2.inbox.some((m) => m.t === 'update'), 'no update offered to a newer tablet app');
+    t2.send({ t: 'version', code: 100 });
+    await wait(300);
+    const offer = t2.inbox.find((m) => m.t === 'update');
+    check(offer && offer.code === 500 && offer.size === APK.length, 'update offered to an older tablet app');
+    t2.send({ t: 'apk' });
+    await wait(1000);
+    const ap = t2.inbox.filter((m) => m.t === 'apk').sort((a, b) => a.i - b.i);
+    const apk = Buffer.concat(ap.map((m) => Buffer.from(m.data, 'base64')));
+    check(apk.equals(APK) && ap[0].sha256 === crypto.createHash('sha256').update(APK).digest('hex'), `update arrives complete and checkable (${ap.length} pieces)`);
+
     // Someone who knows the tablet id but not the key.
     const fake = await tablet(id, crypto.randomBytes(32));
     await wait(500);
@@ -203,7 +222,7 @@ function tablet(deviceId, key, opts = {}) {
   } finally {
     srv.kill();
     setTimeout(() => {
-      try { fs.rmSync(DATA, { recursive: true, force: true }); } catch {}
+      try { fs.rmSync(DATA, { recursive: true, force: true }); fs.rmSync(TAB, { recursive: true, force: true }); } catch {}
       console.log(ok ? 'ALL PASS' : 'SOMETHING FAILED');
       process.exit(ok ? 0 : 1);
     }, 500);

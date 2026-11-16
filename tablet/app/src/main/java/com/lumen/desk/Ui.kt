@@ -186,6 +186,7 @@ fun App(link: Link) {
     var drawing by remember { mutableStateOf(false) }
     var claudeCard by remember { mutableStateOf(false) }
     var connectionCard by remember { mutableStateOf(false) }
+    var updateCard by remember { mutableStateOf(false) }
     val saver by Hub.saver.collectAsState()
     var library by remember { mutableStateOf(false) }
     var apps by remember { mutableStateOf(false) }
@@ -241,7 +242,7 @@ fun App(link: Link) {
                         scaleY = 1f - 0.05f * away
                     }) {
                         when (page.layout) {
-                            "home" -> HomePage(page, c, live, status, link, onTap, { library = true }, { apps = true }, { phone = true }, { touchpad = true }, { presenter = true }, { drawing = true }, { claudeCard = true }, { connectionCard = true }) { settings = true }
+                            "home" -> HomePage(page, c, live, status, link, onTap, { library = true }, { apps = true }, { phone = true }, { touchpad = true }, { presenter = true }, { drawing = true }, { claudeCard = true }, { connectionCard = true }, { updateCard = true }) { settings = true }
                             "sliders" -> SlidersPage(live, link)
                             "big" -> GridPage(page, c, live, onTap, cols = 3, rows = 2)
                             else -> GridPage(page, c, live, onTap, cols = 4, rows = 3)
@@ -274,6 +275,7 @@ fun App(link: Link) {
             if (status is Status.Refused) RefusedCard((status as Status.Refused).pc, link)
             if (claudeCard) ClaudeCard(live.claude) { claudeCard = false }
             if (connectionCard) ConnectionCard(link, status, { settings = true }) { connectionCard = false }
+            if (updateCard) UpdateCard(link) { updateCard = false }
 
             AnimatedVisibility(toast != null, Modifier.align(Alignment.BottomCenter).offset(y = (-36).u), enter = fadeIn(), exit = fadeOut()) {
                 Pill(toast ?: "")
@@ -393,10 +395,10 @@ fun Dots(count: Int, current: Int, modifier: Modifier, onPick: (Int) -> Unit) {
 // ---------- home page (layout A) ----------
 
 @Composable
-fun HomePage(page: Page, cfg: PanelConfig, live: LiveState, status: Status, link: Link, onTap: (Tile) -> Unit, onLibrary: () -> Unit, onApps: () -> Unit, onPhone: () -> Unit, onTouchpad: () -> Unit, onPresenter: () -> Unit, onDraw: () -> Unit, onClaude: () -> Unit, onConnection: () -> Unit, onSettings: () -> Unit) {
+fun HomePage(page: Page, cfg: PanelConfig, live: LiveState, status: Status, link: Link, onTap: (Tile) -> Unit, onLibrary: () -> Unit, onApps: () -> Unit, onPhone: () -> Unit, onTouchpad: () -> Unit, onPresenter: () -> Unit, onDraw: () -> Unit, onClaude: () -> Unit, onConnection: () -> Unit, onUpdate: () -> Unit, onSettings: () -> Unit) {
     Row(Modifier.fillMaxSize().padding(24.u), horizontalArrangement = Arrangement.spacedBy(18.u)) {
         val usb by link.viaUsb.collectAsState()
-        ClockCard(cfg, live, status, usb, Modifier.weight(1.25f).fillMaxHeight(), onApps, onPhone, onTouchpad, onPresenter, onDraw, onClaude, onConnection, onSettings)
+        ClockCard(cfg, live, status, usb, Modifier.weight(1.25f).fillMaxHeight(), onApps, onPhone, onTouchpad, onPresenter, onDraw, onClaude, onConnection, onUpdate, onSettings)
         Column(Modifier.weight(2f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(18.u)) {
             SpotifyCard(live.spotify, live.audio, cfg.theme.media, link, onLibrary, Modifier.weight(1f).fillMaxWidth())
             Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(18.u)) {
@@ -471,7 +473,7 @@ fun rememberNow(): Calendar {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ClockCard(cfg: PanelConfig, live: LiveState, status: Status, usb: Boolean, modifier: Modifier, onApps: () -> Unit, onPhone: () -> Unit, onTouchpad: () -> Unit, onPresenter: () -> Unit, onDraw: () -> Unit, onClaude: () -> Unit, onConnection: () -> Unit, onSettings: () -> Unit) {
+fun ClockCard(cfg: PanelConfig, live: LiveState, status: Status, usb: Boolean, modifier: Modifier, onApps: () -> Unit, onPhone: () -> Unit, onTouchpad: () -> Unit, onPresenter: () -> Unit, onDraw: () -> Unit, onClaude: () -> Unit, onConnection: () -> Unit, onUpdate: () -> Unit, onSettings: () -> Unit) {
     val now = rememberNow()
     val h = now.get(Calendar.HOUR_OF_DAY)
     val greeting = when { h < 5 -> "Good night"; h < 12 -> "Good morning"; h < 18 -> "Good afternoon"; h < 22 -> "Good evening"; else -> "Good night" }
@@ -499,12 +501,13 @@ fun ClockCard(cfg: PanelConfig, live: LiveState, status: Status, usb: Boolean, m
                     Spacer(Modifier.width(6.u))
                     Glyph("chevron-right", 13.u, Grey2)
                 }
+                UpdatePill(onUpdate)
             }
             BoxWithConstraints(Modifier.fillMaxWidth()) {
                 val width = maxWidth
                 Column {
                     Box(Modifier.offset(x = (-3).u)) {
-                        FitText("%02d:%02d".format(h, now.get(Calendar.MINUTE)), font, font.size, White, width)
+                        FitText("%02d:%02d".format(h, now.get(Calendar.MINUTE)), font, font.size * 1.15f, White, width)
                     }
                     Spacer(Modifier.height(18.u))
                     T("${DAYS[now.get(Calendar.DAY_OF_WEEK) - 1]}, ${MONTHS[now.get(Calendar.MONTH)]} ${now.get(Calendar.DAY_OF_MONTH)}", 23.us, Grey0)
@@ -654,9 +657,9 @@ fun SpotifyCard(sp: Spotify, audio: Audio?, style: String, link: Link, onLibrary
                     LibraryChip(onLibrary)
                 }
                 Spacer(Modifier.height(6.u))
-                T(if (sp.active) sp.title else "Play music on the PC", 28.us, weight = FontWeight.SemiBold)
+                T(if (sp.active) sp.title else "Nothing playing", 28.us, weight = FontWeight.SemiBold)
                 Spacer(Modifier.height(4.u))
-                T(if (sp.active) sp.artist else "The buttons control the player on the PC", 17.us, Grey1)
+                if (sp.active) T(sp.artist, 17.us, Grey1) else SpotifyStart(link)
             }
             Column {
                 Bar(if (sp.duration > 0) pos.toFloat() / sp.duration else 0f, White, true, Modifier.fillMaxWidth()) { f ->
@@ -687,6 +690,28 @@ fun SpotifyCard(sp: Spotify, audio: Audio?, style: String, link: Link, onLibrary
             }
         }
         if (big) VolumeColumn(audio!!, link, Modifier.width(92.u).fillMaxHeight())
+    }
+}
+
+/**
+ * When nothing plays: start Spotify on the PC (the app, or the web player when it is not installed)
+ * or one of the first playlists right away – Spotify is started for it if needed.
+ */
+@Composable
+fun SpotifyStart(link: Link) {
+    val status by link.status.collectAsState()
+    var lists by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
+    LaunchedEffect(status is Status.Connected) {
+        if (status !is Status.Connected) return@LaunchedEffect
+        link.lib("sources") { r ->
+            val a = r.optJSONArray("data") ?: return@lib
+            lists = (0 until a.length()).map { a.getJSONObject(it) }.filter { it.optString("id") != "liked" }
+                .take(2).map { it.optString("id") to it.optString("name") }
+        }
+    }
+    Row(Modifier.padding(top = 6.u), horizontalArrangement = Arrangement.spacedBy(8.u)) {
+        SmallChip("Open Spotify") { link.spotify("open") }
+        for ((id, name) in lists) SmallChip(if (name.length > 16) name.take(15) + "…" else name) { link.libPlay(id, null, emptyList()) }
     }
 }
 

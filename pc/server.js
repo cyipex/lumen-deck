@@ -24,6 +24,7 @@ const secure = require('./lib/secure');
 const claude = require('./lib/claude');
 const netinfo = require('./lib/netinfo');
 const assets = require('./lib/assets');
+const tabletapp = require('./lib/tabletapp');
 
 // App names for notifications (same IDs as in the Start menu).
 let startApps = [];
@@ -235,8 +236,20 @@ function onTabletMessage(ws, msg) {
   const fail = (e) => send(ws, { t: 'toast', text: e.message });
   if (msg.t === 'tap') tapTile(String(msg.tile)).catch(fail);
   else if (msg.t === 'spotify') {
+    // "Open Spotify": the app on this PC, or the web player when it is not installed.
+    if (msg.cmd === 'open') {
+      send(ws, { t: 'toast', text: 'Starting Spotify…' });
+      spotify.open().catch(fail);
+      return;
+    }
     spotify.control(String(msg.cmd), msg.value).then((ok) => {
-      if (!ok && ['toggle', 'next', 'prev'].includes(msg.cmd)) input.media({ toggle: 'playpause', next: 'next', prev: 'prev' }[msg.cmd]);
+      if (ok) return;
+      // Nothing is playing anywhere: Play starts Spotify and continues where it stopped.
+      if (['toggle', 'play'].includes(msg.cmd) && spotify.status().connected) {
+        send(ws, { t: 'toast', text: 'Starting Spotify…' });
+        return spotify.open();
+      }
+      if (['toggle', 'next', 'prev'].includes(msg.cmd)) input.media({ toggle: 'playpause', next: 'next', prev: 'prev' }[msg.cmd]);
     }).catch(fail);
   } else if (msg.t === 'audio') {
     const v = msg.value;
@@ -272,6 +285,22 @@ function onTabletMessage(ws, msg) {
   else if (msg.t === 'drawscreen') display.drawScreen(msg.i).then((s) => send(ws, { t: 'drawscreen', ...s })).catch(fail);
   else if (msg.t === 'draw') display.draw(msg);
   // Second monitor: a one-time ticket (30 s) and its own key for the separate, encrypted video connection.
+  // The tablet tells its app version; an older one is offered the app that came with this Lumen Desk.
+  else if (msg.t === 'version') {
+    ws.appVersion = Number(msg.code) || 0;
+    const offer = tabletapp.offerFor(ws.appVersion);
+    if (offer) send(ws, offer);
+  }
+  // The new tablet app, in pieces like the assets; the tablet checks the SHA-256 before installing it.
+  else if (msg.t === 'apk') {
+    const a = tabletapp.info();
+    if (!a) return send(ws, { t: 'apk', error: 'No tablet app on this PC' });
+    const CHUNK = 192 * 1024;
+    const n = Math.ceil(a.buf.length / CHUNK);
+    for (let i = 0; i < n; i++) {
+      send(ws, { t: 'apk', code: a.code, sha256: a.sha256, i, n, data: a.buf.subarray(i * CHUNK, (i + 1) * CHUNK).toString('base64') });
+    }
+  }
   // A photo or font for the screensaver/clock, in pieces (each an encrypted message of its own).
   else if (msg.t === 'asset') {
     const a = assets.find(msg.id);

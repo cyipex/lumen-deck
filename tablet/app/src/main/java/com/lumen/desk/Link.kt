@@ -37,6 +37,7 @@ sealed interface Status {
  * the pairing key it gave it when the user allowed it, never through the tablet's id alone.
  */
 class Link(context: Context) {
+    private val app = context.applicationContext
     private val prefs = context.getSharedPreferences("link", Context.MODE_PRIVATE)
     private val main = Handler(Looper.getMainLooper())
     private val wifi = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
@@ -216,6 +217,8 @@ class Link(context: Context) {
         }
     }
 
+    fun downloadUpdate() = Updater.start(::send)
+
     /** A new attempt right away (the "Try again" button). */
     fun retry() {
         main.post { reconnectSoon(0) }
@@ -355,6 +358,8 @@ class Link(context: Context) {
                     }
                     status.value = Status.Connected(live.value.pc)
                     searching(false)
+                    // Which tablet app this is; the PC answers with an update when it has a newer one.
+                    send(JSONObject().put("t", "version").put("code", Updater.version(app)))
                 } else {
                     // The code is our own result of the key exchange, not a number the other side sent.
                     status.value = Status.Pending(m.optString("pc"), pairCode, known = keyFor(pc) != null || legacyKey != null)
@@ -395,6 +400,8 @@ class Link(context: Context) {
             "notify" -> notices.tryEmit(Notice(m.optLong("id"), m.optString("app"), m.optString("title"), m.optString("body")))
             "lib", "display" -> libWaiting.remove(m.optInt("req"))?.let { cb -> main.post { cb(m) } }
             "asset" -> Assets.piece(m)
+            "update" -> Updater.offered(m, app)
+            "apk" -> Updater.piece(m, app)
             // "Show it on the tablet now" in the PC settings.
             "saver" -> Hub.saver.value = true
             "drawscreen" -> drawScreen.value = DrawScreen(m.optInt("i"), m.optInt("n", 1), m.optInt("w", 16), m.optInt("h", 9))

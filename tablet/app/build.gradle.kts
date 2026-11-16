@@ -13,8 +13,9 @@ android {
         // Android 7.0 (API 24) and newer, so old tablets work too.
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        // Grows with every build (minutes since 2026), so the PC can tell which tablet app is newer.
+        versionCode = ((System.currentTimeMillis() / 60_000L) - 29_454_000L).toInt().coerceAtLeast(2)
+        versionName = "1.1"
     }
 
     sourceSets {
