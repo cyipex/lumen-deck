@@ -289,12 +289,16 @@ function onTabletMessage(ws, msg) {
   else if (msg.t === 'version') {
     ws.appVersion = Number(msg.code) || 0;
     const offer = tabletapp.offerFor(ws.appVersion);
-    if (offer) send(ws, offer);
+    if (offer) {
+      logTablet(`runs app ${ws.appVersion}, update ${offer.code} offered`, ws);
+      send(ws, offer);
+    }
   }
   // The new tablet app, in pieces like the assets; the tablet checks the SHA-256 before installing it.
   else if (msg.t === 'apk') {
     const a = tabletapp.info();
     if (!a) return send(ws, { t: 'apk', error: 'No tablet app on this PC' });
+    logTablet(`is downloading app ${a.code}`, ws);
     const CHUNK = 192 * 1024;
     const n = Math.ceil(a.buf.length / CHUNK);
     for (let i = 0; i < n; i++) {
