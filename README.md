@@ -1,40 +1,93 @@
-# Lumen Desk
+<h1 align="center">Lumen Desk</h1>
 
-**Give your old Android tablet a new job: a beautiful control panel that sits next to your Windows PC.**
+<p align="center"><b>Turn your old Android tablet into a free control panel – and home screen – for your Windows PC.</b></p>
 
-See the time and weather, control Spotify, change the volume of every app, switch your lights, run shortcuts with one tap – or use the tablet as a **second monitor**. Everything is set up from a simple window on your PC.
+<p align="center">
+  <a href="https://cyipex.github.io/lumen-desk/"><b>Try the live demo</b></a> ·
+  <a href="https://github.com/cyipex/lumen-desk/releases/latest"><b>Download</b></a> ·
+  <a href="#install-in-one-command"><b>Install</b></a> ·
+  <a href="#everything-it-can-do"><b>All features</b></a>
+</p>
 
-![Lumen Desk on a tablet](docs/screenshots/tablet-home-emerald.jpg)
+<p align="center">
+  <a href="https://github.com/cyipex/lumen-desk/actions/workflows/build.yml"><img src="https://github.com/cyipex/lumen-desk/actions/workflows/build.yml/badge.svg" alt="Build"></a>
+  <a href="https://github.com/cyipex/lumen-desk/releases/latest"><img src="https://img.shields.io/github/v/release/cyipex/lumen-desk?label=release" alt="Latest release"></a>
+  <img src="https://img.shields.io/badge/Windows-10%20%C2%B7%2011-0078d4" alt="Windows 10 and 11">
+  <img src="https://img.shields.io/badge/Android-7%2B-3ddc84" alt="Android 7+">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
+</p>
+
+<p align="center"><a href="https://cyipex.github.io/lumen-desk/"><img src="docs/screenshots/demo.gif" width="900" alt="Lumen Desk on a tablet: home screen, shortcuts, touchpad with keyboard, volume mixer and clock screensaver"></a><br>
+<sub>The tablet screen with demo data. <a href="https://cyipex.github.io/lumen-desk/">Try it in your browser</a> – no install.</sub></p>
+
+Lumen Desk is a small Windows app plus an Android app. The tablet becomes a **Stream-Deck-style panel**: a big clock, Spotify, the volume of every app, one-tap shortcuts, a touchpad and keyboard, a drawing tablet, a presentation remote – or a **second monitor**. It can replace the tablet's **home screen**, so it always comes back to the panel. Free, open source, no account, no cloud.
+
+## Install in one command
+
+On the PC, open **PowerShell** and paste:
+
+```powershell
+irm https://raw.githubusercontent.com/cyipex/lumen-desk/main/get.ps1 | iex
+```
+
+It downloads the latest installer from this repo's [Releases](https://github.com/cyipex/lumen-desk/releases/latest), checks its SHA-256 and starts it. Then on the tablet open
+**[github.com/cyipex/lumen-desk/releases/latest/download/lumen-desk.apk](https://github.com/cyipex/lumen-desk/releases/latest/download/lumen-desk.apk)**, install it, and allow the tablet on the PC when both show the same 6-digit code. That's it – [step by step below](#set-it-up-step-by-step).
+
+## Why Lumen Desk?
+
+| | Lumen Desk | A Stream Deck |
+|---|---|---|
+| Price | **Free** – uses the tablet in your drawer | from about €150 |
+| Screen | 10″ touch screen: clock, Spotify, mixer, any layout | 15 small keys |
+| Touchpad, keyboard, drawing tablet, second monitor | ✓ | – |
+| Home screen of the device (always returns to the panel) | ✓ | – |
+| Works without an account or cloud | ✓ | ✓ |
+
+## Everything it can do
+
+**On the home screen**
+- 🕒 **Big clock** in 20 fonts (or your own TTF / OTF), date, weather, CPU and RAM.
+- 🎵 **Spotify** – what's playing, play / pause / skip / seek, your playlists and liked songs. Press Play while nothing plays and it **starts Spotify on the PC** (or the web player when the app is not installed).
+- 🔊 **Volume** – PC volume, mute, switch speakers / headphones, and a **mixer page with one slider per app** (Spotify, Discord, games…).
+- ⚡ **One-tap tiles** – open apps, files and websites (even in a chosen browser profile), keyboard shortcuts, typed text, media keys, lock / sleep / shut down, toggles that light up. Chain them into macros.
+- 💡 **Smart lights** – Yeelight bulbs on and off.
+- 🔔 **Notifications** from Discord, WhatsApp and other Windows apps pop up on the tablet.
+- 🤖 **Claude usage** – your Claude 5-hour and weekly limits, from Claude Code on the PC.
+- 📄 Multiple **pages** you swipe between: home, 4 × 3 grid, big 3 × 2 tiles, mixer.
+
+**Tools**
+- 🖱️ **Touchpad and keyboard** – tap to click, two fingers to scroll and right click, pinch to zoom, double-tap-and-hold to drag, three fingers to switch apps; a full laptop keyboard with Ctrl / Alt / Win, F-keys, arrows and accented letters.
+- 🎤 **Presentation remote** – big Next / Back, a timer, a laser-pointer pad; the tablet's **volume keys switch slides**.
+- ✏️ **Drawing tablet** – the tablet surface is a whole PC monitor; draw with a finger in Paint, Photoshop, Krita…
+- 🖥️ **Second monitor** – the tablet becomes an extra screen for the PC, with touch.
+- 📱 **Lumen Mirror** – see and control an Android phone (for example one with a broken screen) on the tablet.
+
+**The tablet itself**
+- 🏠 **Home screen (launcher)** – set Lumen Desk as the tablet's launcher: after power-on or Home it always goes straight back to the panel, with no app drawer in the way. The tablet's own apps are one tap away.
+- 🌙 **Clock screensaver** after 2 minutes or from its button – your photo, font, position, size and color, set on the PC; one touch closes it without pressing anything underneath.
+- 🔋 Battery saving: the screen dims when nobody touches it.
+- 📐 Fits any screen: 10″ tablets, 16:9 and 4:3 tablets, even phones held sideways.
+- ⬆️ **Updates over Wi-Fi** – the PC offers new tablet versions; no cable needed.
+
+**Your style**
+- 🎨 10 background colors, 20 clock fonts plus your own, two player styles – changed on the tablet or the PC, live.
+- 🧩 Everything is set up in a **settings window on the PC**: click a tile to choose what it does, drag tiles around, add pages. The PC keeps the **last 30 versions** of your layout to restore with one click.
+
+**Connection and security**
+- 📶 Finds the PC by itself on the same Wi-Fi, or uses a **USB cable** (faster, and the tablet charges).
+- 🔐 **Encrypted** connection with a pairing code; a website or another device on the network cannot control your PC. [Details](#security).
+- 🙈 No account, no cloud, no telemetry.
 
 <table>
   <tr>
-    <td><img src="docs/screenshots/tablet-home-ocean.jpg" alt="Ocean color with the Space Grotesk clock"></td>
-    <td><img src="docs/screenshots/tablet-home-amber.jpg" alt="Amber color with the Outfit clock"></td>
+    <td><img src="docs/screenshots/demo-grid.png" alt="A page of shortcut tiles"></td>
+    <td><img src="docs/screenshots/demo-keyboard.png" alt="Touchpad with the keyboard open"></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/tablet-mixer.jpg" alt="Volume mixer: one slider per app"></td>
-    <td><img src="docs/screenshots/tablet-settings.jpg" alt="Settings on the tablet"></td>
-  </tr>
-  <tr>
-    <td align="center"><sub>Pick a color and a clock font</sub></td>
-    <td align="center"><sub>…right on the tablet or on the PC</sub></td>
+    <td><img src="docs/screenshots/demo-mixer.png" alt="Volume mixer: one slider per app"></td>
+    <td><img src="docs/screenshots/demo-saver.png" alt="Clock screensaver"></td>
   </tr>
 </table>
-
----
-
-## What can it do?
-
-| | |
-|---|---|
-| 🕒 **Clock & weather** | A big clock, the date, the weather and your PC's CPU / RAM usage. |
-| 🎵 **Spotify** | See what's playing, pause, skip, seek – and browse your playlists and liked songs. Tap a song and it plays on your PC. |
-| 🔊 **Volume mixer** | One slider for the whole PC and one for every app that plays sound (Spotify, Discord, your browser, games…). |
-| ⚡ **One-tap tiles** | Open apps, files or websites (even in a specific browser profile), press keyboard shortcuts, mute your mic, lock or sleep the PC. |
-| 💡 **Smart lights** | Turn Yeelight bulbs on and off. |
-| 🖥️ **Second monitor** | The tablet becomes an extra screen for your PC – touch works like a mouse. |
-| 🔔 **Notifications** | Messages from Discord, WhatsApp and other apps pop up on the tablet. |
-| 🎨 **Your style** | 10 background colors, 3 clock fonts, multiple pages and layouts. |
 
 **Everything is set up on your PC** – click a tile to choose what it does, drag tiles around, add pages:
 
@@ -45,35 +98,32 @@ See the time and weather, control Spotify, change the volume of every app, switc
 ## What you need
 
 - A **Windows 10 or 11** PC
-- An **Android tablet** with Android 7 or newer (old tablets are perfect)
+- An **Android tablet or phone** with Android 7 or newer (old tablets are perfect)
 - Both on the **same Wi-Fi** – or connected with a USB cable
 - Optional: **Spotify Premium** for the music controls
 
 ---
 
-## Set it up (about 5 minutes)
+## Set it up step by step
 
 ### Step 1 – On your PC
-1. Download **`LumenDeskSetup.exe`** from the [Releases](../../releases) page (on the right side of this page).
-2. Run it and click **Next → Install → Finish**.
+Use the [one command](#install-in-one-command) above, or download **`LumenDeskSetup.exe`** from the [Releases](../../releases) page and run it (**Next → Install → Finish**).
 
-That's it for the PC. Lumen Desk runs in the background, starts with Windows, and the **Lumen Desk** icon on your desktop opens the settings. Uninstall it any time in *Windows Settings → Apps*.
+Lumen Desk runs in the background, starts with Windows, and the **Lumen Desk** icon on your desktop opens the settings. Uninstall it any time in *Windows Settings → Apps*.
 
 > **"Windows protected your PC"?** The installer is not code-signed (that costs money for a free project), so Windows warns about it the first time. Click **More info → Run anyway**.
 
 ### Step 2 – On your tablet
-1. Download **`lumen-desk.apk`** from the [Releases](../../releases) page (on the right side of this page) – open the link directly on the tablet, or copy the file over.
+1. Download **`lumen-desk.apk`** from the [Releases](../../releases) page – open the link directly on the tablet.
 2. Open the file to install it. If Android asks, allow installing apps from this source.
 3. Open **Lumen Desk** on the tablet. It finds your PC by itself.
 
 ### Step 3 – Allow the tablet
 The tablet shows a 6-digit code. On the PC, open the **Lumen Desk** settings → **Tablet**, check that the same code is shown there and click **Allow**. You only need to do this once.
 
-Done! 🎉 Now make it yours: in the settings window click a tile to change what it does, drag tiles around, add pages, or pick a color under **Appearance**.
+Done! 🎉 Now make it yours: in the settings window click a tile to change what it does, drag tiles around, add pages, or pick a color under **Appearance** and style the clock under **Screensaver**.
 
-![Appearance settings](docs/screenshots/pc-appearance.jpg)
-
-**Tip:** to make Lumen Desk the tablet's home screen, open the ⚙ settings on the tablet (bottom right of the clock card) → **Set as default launcher**.
+**Make it the home screen:** open the ⚙ settings on the tablet (bottom of the shortcut column) → **Set as default launcher**.
 
 ---
 
@@ -116,17 +166,31 @@ On the tablet: tap = click, drag = drag, hold = right click, two fingers = scrol
 3. Plug the tablet in and accept the *Allow USB debugging* prompt. Lumen Desk switches to the cable by itself.
 </details>
 
+<details>
+<summary><b>Claude usage</b> – your Claude limits on the home screen</summary>
+
+The installer can't change Claude Code's settings for you. Add this to `%USERPROFILE%\.claude\settings.json`:
+
+```json
+"statusLine": { "type": "command", "command": "\"C:/Program Files/Lumen Desk/LumenDesk.exe\" --claude-status" }
+```
+
+The numbers come from Claude Code's status line, so they update while you use `claude` in a terminal. Nothing is fetched from the internet and no login is touched.
+</details>
+
 ---
 
 ## Something doesn't work?
 
 | Problem | Try this |
 |---|---|
-| The tablet keeps *Looking for PC…* | Make sure both are on the same Wi-Fi and Lumen Desk runs on the PC (desktop icon). Or enter the PC's address manually in the tablet's ⚙ settings. |
-| Spotify shows nothing | Start playing something in Spotify on any device first. |
+| The tablet keeps *Looking for PC…* | Make sure both are on the same Wi-Fi and Lumen Desk runs on the PC. Tap the connection pill on the tablet for details, or enter the address shown in the PC settings → **Tablet → Connect the tablet**. School, hotel and café Wi-Fi often block devices from seeing each other – use the USB cable there. |
+| *The PC does not accept this tablet* | The tablet was paired with another PC or removed on this one. Tap **Pair again** and allow it on the PC. |
+| Spotify shows nothing | Press Play on the tablet – Lumen Desk starts Spotify on the PC. |
 | Some playlists show no songs | Spotify only lets apps list songs of playlists *you* created; others can still be played with **Play** / **Shuffle**. |
 | Second monitor is black | Check that Windows shows two displays (Win + P → Extend) and that *Second monitor* shows **Installed** in **Tablet → Extras**. |
-| Anything else | The settings window → **Tablet** → *Server status* shows a log of errors. |
+| My layout looks reset | PC settings → **Tablet → Earlier layouts** → **Restore**. |
+| Anything else | The settings window → **Tablet** → *Server status* shows a log. Or [open an issue](../../issues/new/choose). |
 
 ---
 
@@ -140,14 +204,19 @@ It will walk you through every step and ask before doing anything important.
 
 ---
 
+## Contributing
+
+Ideas, bug reports, translations and code are welcome – see [CONTRIBUTING.md](CONTRIBUTING.md). Issues labelled `good first issue` are a good start. What changed in each version: [CHANGELOG.md](CHANGELOG.md).
+
 ## For developers
 
-- `pc/` – Windows server (Node.js 22.5+, no build step). `run.js` supervises `server.js`; libraries in `lib/`, settings UI in `ui/`. Run it from source with `pc/Setup.cmd` or `npm start`.
-- `pc/installer/` – builds `LumenDeskSetup.exe` (`npm run installer`): the server is bundled with esbuild, packed with Node.js into one exe (Node single executable application) and wrapped with [Inno Setup](https://jrsoftware.org/isinfo.php). When installed, user data lives in `%APPDATA%\Lumen Desk`.
+- `pc/` – Windows server (Node.js 22+, no build step). `run.js` supervises `server.js`; libraries in `lib/`, settings UI in `ui/`, tests in `test/` (`npm test`).
+- `pc/installer/` – builds `LumenDeskSetup.exe` (`npm run installer`): the server is bundled with esbuild, packed with Node.js into one exe (Node single executable application) and wrapped with [Inno Setup](https://jrsoftware.org/isinfo.php). It also includes the tablet app, which the PC offers to tablets as an update. User data lives in `%APPDATA%\Lumen Desk`.
 - `tablet/` – Android app (Kotlin, Jetpack Compose, Android 7.0+). Build with `./gradlew assembleRelease` (JDK 17, Android SDK 34).
-- `shared/icons.json` – icons shared by both.
+- `phone/` – Lumen Mirror, the phone app.
+- `shared/` – icons and clock fonts used by both. `docs/` – the live demo and screenshots (GitHub Pages).
 
-How it works: WebSocket server for the tablet on port 47801, auto-discovery over UDP broadcast (port 47802), the settings window on `http://127.0.0.1:47803` (only reachable from the PC itself), new tablets need approval. Keyboard, mouse, volume and windows are controlled through small PowerShell helpers (Win32 / Core Audio). The second monitor is captured with ffmpeg `ddagrab`, encoded to H.264 and decoded by the tablet's hardware. Notifications are read from the Windows notification database (read-only). Optional env var `LUMEN_PC_NAME` changes the PC name shown on the tablet.
+How it works: encrypted WebSocket for the tablet on port 47801, auto-discovery over UDP broadcast (port 47802), the settings window on `http://127.0.0.1:47803` (only reachable from the PC itself). Keyboard, mouse, volume and windows are controlled through small PowerShell helpers (Win32 / Core Audio). The second monitor is captured with ffmpeg `ddagrab`, encoded to H.264 and decoded by the tablet's hardware. Notifications are read from the Windows notification database (read-only). Optional env var `LUMEN_PC_NAME` changes the PC name shown on the tablet.
 
 See [AGENTS.md](AGENTS.md) for details.
 
@@ -156,12 +225,10 @@ See [AGENTS.md](AGENTS.md) for details.
 - **Pairing.** A new tablet and the PC show the same 6-digit code; allow the tablet only when they match. The PC then gives the tablet a random 256-bit pairing key, which is mixed into every later connection – the tablet's id alone is worth nothing to an attacker, and the key itself never travels over the network again.
 - **Settings stay on the PC.** The settings window and its API listen only on 127.0.0.1:47803 (not forwarded over the USB cable) and accept requests only from the settings page itself (Host, Origin and a custom header are checked), so a web page open in your browser cannot change macros or run programs.
 - Pairing keys and the Spotify login are stored in your Windows user profile (`%APPDATA%\Lumen Desk`); anyone who can log into your Windows account can read them.
-
-## Related
-**Lumen TV** – the same look as a launcher for Android TV / Google TV.
+- Found a security problem? Please report it privately – see [SECURITY.md](SECURITY.md).
 
 ## Credits
-Fonts: [Inter](https://rsms.me/inter/), [Fraunces](https://github.com/undercasetype/Fraunces), [Outfit](https://github.com/Outfitio/Outfit-Fonts), [Space Grotesk](https://github.com/floriankarsten/space-grotesk) (SIL Open Font License). Weather by [Open-Meteo](https://open-meteo.com). Music via the Spotify Web API. Second monitor uses [Virtual Display Driver](https://github.com/VirtualDrivers/Virtual-Display-Driver) and [ffmpeg](https://ffmpeg.org) – both are installed separately by you and keep their own licenses.
+Fonts: [Inter](https://rsms.me/inter/) and 20 clock fonts from [Google Fonts](https://fonts.google.com) (SIL Open Font License, licenses in `shared/fonts/licenses`). Weather by [Open-Meteo](https://open-meteo.com). Music via the Spotify Web API. Second monitor uses [Virtual Display Driver](https://github.com/VirtualDrivers/Virtual-Display-Driver) and [ffmpeg](https://ffmpeg.org) – both are installed separately by you and keep their own licenses.
 
 ## License
 [MIT](LICENSE)
