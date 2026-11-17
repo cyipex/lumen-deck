@@ -185,7 +185,7 @@ select { font: inherit; color: #fff; background: rgba(255,255,255,0.06); border:
 .choice { display: flex; gap: 10px; }
 .choice div { flex: 1; text-align: center; padding: 14px; border-radius: 22px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.05); font-size: 16px; font-weight: 500; cursor: pointer; }
 .choice div.sel { background: #fff; color: #050505; }
-/* presenter, mirror, apps */
+/* presenter, apps */
 .pres { position: absolute; inset: 0; display: none; flex-direction: column; gap: 18px; padding: 24px; background: var(--ink); }
 .pres.show { display: flex; }
 .pres .head { display: flex; align-items: center; gap: 18px; height: 64px; }
@@ -197,13 +197,6 @@ select { font: inherit; color: #fff; background: rgba(255,255,255,0.06); border:
 .timer { border-radius: 24px; padding: 6px 22px; text-align: center; cursor: pointer; }
 .timer b { display: block; font-size: 28px; }
 .timer small { font-size: 11px; color: var(--g2); }
-.mirror { position: absolute; inset: 0; display: none; background: #000; }
-.mirror.show { display: block; }
-.phone { position: absolute; left: 50%; top: 24px; bottom: 24px; transform: translateX(-50%); aspect-ratio: 9 / 18.5; border-radius: 36px; background: linear-gradient(160deg, #1d3b6b, #0b0f1a 60%); border: 1px solid rgba(255,255,255,0.15); overflow: hidden; }
-.phone .ph-time { text-align: center; color: #fff; font-size: 64px; font-weight: 300; margin-top: 70px; }
-.phone .ph-apps { position: absolute; left: 22px; right: 22px; bottom: 40px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
-.phone .ph-apps i { aspect-ratio: 1; border-radius: 16px; display: block; }
-.side { position: absolute; right: 24px; top: 24px; display: flex; flex-direction: column; gap: 12px; }
 .apps { position: absolute; inset: 0; display: none; padding: 40px; background: var(--ink); }
 .apps.show { display: block; }
 .apps .ag { display: grid; grid-template-columns: repeat(6, 1fr); gap: 26px; margin-top: 30px; }
@@ -333,7 +326,6 @@ input[type=text] { font: inherit; color: #fff; background: rgba(255,255,255,0.06
           <div class="dk glass" data-i="touchpad" data-open="pad"></div>
           <div class="dk glass" data-i="slides" data-open="pres"></div>
           <div class="dk glass" data-i="pen" data-open="draw"></div>
-          <div class="dk glass" data-i="phone" data-open="mirror"></div>
           <div class="dk glass" data-i="clock" data-open="saver"></div>
           <div class="sp"></div>
           <div class="dk glass" data-i="grid" data-open="apps"></div>
@@ -432,14 +424,6 @@ input[type=text] { font: inherit; color: #fff; background: rgba(255,255,255,0.06
     <div class="acts"><div class="glass" data-toast="F5 – the slideshow starts">Start</div><div class="glass" data-toast="Shift + F5 – from this slide">From this slide</div><div class="glass" data-toast="B – black screen">Black screen</div><div class="glass" data-toast="Ctrl + L – laser pointer">Laser</div><div class="glass" data-toast="Esc – slideshow ended">End</div></div>
   </div>
 
-  <!-- Lumen Mirror -->
-  <div class="over mirror" id="mirror">
-    <div class="phone"><div class="ph-time" id="phTime">21:14</div>
-      <div class="ph-apps"><i style="background:#3ddc84"></i><i style="background:#f4b400"></i><i style="background:#db4437"></i><i style="background:#4285f4"></i><i style="background:#9b5de5"></i><i style="background:#00bbf9"></i><i style="background:#f15bb5"></i><i style="background:#fee440"></i></div></div>
-    <div class="side"><div class="round glass dk" data-i="close" data-close="mirror" style="width:52px;height:52px;border-radius:50%"></div><div class="round glass dk" data-i="back" data-toast="Back on the phone" style="width:52px;height:52px;border-radius:50%"></div><div class="round glass dk" data-i="home" data-toast="Home on the phone" style="width:52px;height:52px;border-radius:50%"></div><div class="round glass dk" data-i="keyboard" data-toast="Type on the phone" style="width:52px;height:52px;border-radius:50%"></div></div>
-    <div style="position:absolute;left:24px;bottom:24px;color:var(--g2);font-size:15px;width:300px">Lumen Mirror: your phone's screen on the tablet – touch it like the phone itself. Handy for a phone with a broken screen.</div>
-  </div>
-
   <!-- the tablet's own apps -->
   <div class="over apps" id="apps">
     <div style="display:flex;align-items:center"><div style="flex:1;font-size:30px;font-weight:600">Apps</div><div class="round glass dk" data-i="close" data-close="apps" style="width:48px;height:48px;border-radius:50%"></div></div>
@@ -524,7 +508,7 @@ function toast(text) { const t = $('#toast'); t.textContent = text; t.classList.
 function clock() {
   const d = new Date(), h = d.getHours();
   const hm = String(h).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-  $('#time').textContent = hm; $('#saverTime').textContent = hm; $('#phTime').textContent = hm;
+  $('#time').textContent = hm; $('#saverTime').textContent = hm;
   const date = `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`;
   $('#date').textContent = date; $('#saverDate').textContent = date;
   $('#greet').textContent = h < 5 ? 'Good night' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : h < 22 ? 'Good evening' : 'Good night';
@@ -813,7 +797,7 @@ fetch('demo/icons.json').then((r) => r.json()).then((j) => {
   if (font) look.font = +font;
   if (tint || font) applyLook();
   const h = location.hash.slice(1);
-  if (['saver', 'pad', 'draw', 'pres', 'mirror', 'apps', 'tset'].includes(h)) open(h);
+  if (['saver', 'pad', 'draw', 'pres', 'apps', 'tset'].includes(h)) open(h);
   if (h === 'keyboard') { open('pad'); $('#kbBtn').click(); }
   if (h === 'grid') go(1);
   if (h === 'mixer') go(2);

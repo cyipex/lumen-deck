@@ -180,7 +180,6 @@ fun App(link: Link) {
     val status by link.status.collectAsState()
     var settings by remember { mutableStateOf(false) }
     var display by remember { mutableStateOf(false) }
-    var phone by remember { mutableStateOf(false) }
     var touchpad by remember { mutableStateOf(false) }
     var presenter by remember { mutableStateOf(false) }
     var drawing by remember { mutableStateOf(false) }
@@ -244,7 +243,7 @@ fun App(link: Link) {
                         scaleY = 1f - 0.05f * away
                     }) {
                         when (page.layout) {
-                            "home" -> HomePage(page, c, live, status, link, onTap, { library = true }, { apps = true }, { phone = true }, { touchpad = true }, { presenter = true }, { drawing = true }, { claudeCard = true }, { connectionCard = true }, { updateCard = true }) { settings = true }
+                            "home" -> HomePage(page, c, live, status, link, onTap, { library = true }, { apps = true }, { touchpad = true }, { presenter = true }, { drawing = true }, { claudeCard = true }, { connectionCard = true }, { updateCard = true }) { settings = true }
                             "sliders" -> SlidersPage(live, link)
                             "big" -> GridPage(page, c, live, onTap, cols = 3, rows = 2)
                             else -> GridPage(page, c, live, onTap, cols = 4, rows = 3)
@@ -260,7 +259,6 @@ fun App(link: Link) {
             if (library) LibraryScreen(link, live.spotify, tint) { library = false }
             if (apps) AppsScreen(tint) { apps = false }
             if (display) DisplayScreen(link) { display = false }
-            if (phone) PhoneScreen { phone = false }
             if (touchpad) TouchpadScreen(link) { touchpad = false }
             if (presenter) PresenterScreen(link) { presenter = false }
             if (drawing) DrawScreen(link) { drawing = false }
@@ -397,10 +395,10 @@ fun Dots(count: Int, current: Int, modifier: Modifier, onPick: (Int) -> Unit) {
 // ---------- home page (layout A) ----------
 
 @Composable
-fun HomePage(page: Page, cfg: PanelConfig, live: LiveState, status: Status, link: Link, onTap: (Tile) -> Unit, onLibrary: () -> Unit, onApps: () -> Unit, onPhone: () -> Unit, onTouchpad: () -> Unit, onPresenter: () -> Unit, onDraw: () -> Unit, onClaude: () -> Unit, onConnection: () -> Unit, onUpdate: () -> Unit, onSettings: () -> Unit) {
+fun HomePage(page: Page, cfg: PanelConfig, live: LiveState, status: Status, link: Link, onTap: (Tile) -> Unit, onLibrary: () -> Unit, onApps: () -> Unit, onTouchpad: () -> Unit, onPresenter: () -> Unit, onDraw: () -> Unit, onClaude: () -> Unit, onConnection: () -> Unit, onUpdate: () -> Unit, onSettings: () -> Unit) {
     Row(Modifier.fillMaxSize().padding(24.u), horizontalArrangement = Arrangement.spacedBy(18.u)) {
         val usb by link.viaUsb.collectAsState()
-        ClockCard(cfg, live, status, usb, Modifier.weight(1.25f).fillMaxHeight(), onApps, onPhone, onTouchpad, onPresenter, onDraw, onClaude, onConnection, onUpdate, onSettings)
+        ClockCard(cfg, live, status, usb, Modifier.weight(1.25f).fillMaxHeight(), onApps, onTouchpad, onPresenter, onDraw, onClaude, onConnection, onUpdate, onSettings)
         Column(Modifier.weight(2f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(18.u)) {
             SpotifyCard(live.spotify, live.audio, cfg.theme.media, link, onLibrary, Modifier.weight(1f).fillMaxWidth())
             Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(18.u)) {
@@ -475,7 +473,7 @@ fun rememberNow(): Calendar {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ClockCard(cfg: PanelConfig, live: LiveState, status: Status, usb: Boolean, modifier: Modifier, onApps: () -> Unit, onPhone: () -> Unit, onTouchpad: () -> Unit, onPresenter: () -> Unit, onDraw: () -> Unit, onClaude: () -> Unit, onConnection: () -> Unit, onUpdate: () -> Unit, onSettings: () -> Unit) {
+fun ClockCard(cfg: PanelConfig, live: LiveState, status: Status, usb: Boolean, modifier: Modifier, onApps: () -> Unit, onTouchpad: () -> Unit, onPresenter: () -> Unit, onDraw: () -> Unit, onClaude: () -> Unit, onConnection: () -> Unit, onUpdate: () -> Unit, onSettings: () -> Unit) {
     val now = rememberNow()
     val h = now.get(Calendar.HOUR_OF_DAY)
     val greeting = when { h < 5 -> "Good night"; h < 12 -> "Good morning"; h < 18 -> "Good afternoon"; h < 22 -> "Good evening"; else -> "Good night" }
@@ -531,11 +529,10 @@ fun ClockCard(cfg: PanelConfig, live: LiveState, status: Status, usb: Boolean, m
         }
         Spacer(Modifier.width(18.u))
         Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(10.u)) {
-            // Tools: touchpad with keyboard, presentation remote, drawing tablet, the phone's screen, screensaver ...
+            // Tools: touchpad with keyboard, presentation remote, drawing tablet, screensaver ...
             DockButton("touchpad", onTouchpad)
             DockButton("slides", onPresenter)
             DockButton("pen", onDraw)
-            DockButton("phone", onPhone)
             DockButton("clock") { Hub.saver.value = true }
             Spacer(Modifier.weight(1f))
             // ... and the tablet itself: app catalog and settings.

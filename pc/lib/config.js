@@ -54,7 +54,9 @@ function defaults() {
       date: true, weather: true, claude: false, seconds: false, drift: true
     },
     // Custom clock fonts uploaded in the settings window: [{ id, name }].
-    fonts: []
+    fonts: [],
+    // The virtual monitor for "Second monitor": auto = detach it while the tablet is not showing it.
+    vmonitor: { auto: true, pos: null }
   };
 }
 
@@ -98,6 +100,13 @@ function normalize(c) {
     date: s.date !== false, weather: s.weather !== false, claude: !!s.claude, seconds: !!s.seconds, drift: s.drift !== false
   };
   if (c.saver.background === 'photo' && !c.saver.photo) c.saver.background = 'black';
+  const vm = c.vmonitor && typeof c.vmonitor === 'object' ? c.vmonitor : {};
+  const pos = vm.pos && typeof vm.pos === 'object' ? vm.pos : null;
+  c.vmonitor = {
+    auto: vm.auto !== false,
+    pos: pos && [pos.w, pos.h, pos.x, pos.y].every(Number.isFinite) && pos.w >= 320 && pos.h >= 200
+      ? { w: Math.round(pos.w), h: Math.round(pos.h), x: Math.round(pos.x), y: Math.round(pos.y) } : null
+  };
   if (!Array.isArray(c.pages) || c.pages.length === 0) c.pages = d.pages;
   // The home page is always first and there is only one.
   c.pages = c.pages.filter((p, i) => i === 0 || p.layout !== 'home');

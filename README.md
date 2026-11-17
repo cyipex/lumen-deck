@@ -59,8 +59,7 @@ It downloads the latest installer from this repo's [Releases](https://github.com
 - 🖱️ **Touchpad and keyboard** – tap to click, two fingers to scroll and right click, pinch to zoom, double-tap-and-hold to drag, three fingers to switch apps; a full laptop keyboard with Ctrl / Alt / Win, F-keys, arrows and accented letters.
 - 🎤 **Presentation remote** – big Next / Back, a timer, a laser-pointer pad; the tablet's **volume keys switch slides**.
 - ✏️ **Drawing tablet** – the tablet surface is a whole PC monitor; draw with a finger in Paint, Photoshop, Krita…
-- 🖥️ **Second monitor** – the tablet becomes an extra screen for the PC, with touch.
-- 📱 **Lumen Mirror** – see and control an Android phone (for example one with a broken screen) on the tablet.
+- 🖥️ **Second monitor** – the tablet becomes an extra screen for the PC, with touch. The virtual screen switches itself off while the tablet is not showing it, so the mouse never gets lost on it.
 
 **The tablet or phone itself**
 - 🏠 **Home screen (launcher)** – set Lumen Desk as the device's launcher: after power-on or Home it always goes straight back to the panel, with no app drawer in the way. The device's own apps are one tap away.
@@ -215,7 +214,6 @@ Ideas, bug reports, translations and code are welcome – see [CONTRIBUTING.md](
 - `pc/` – Windows server (Node.js 22+, no build step). `run.js` supervises `server.js`; libraries in `lib/`, settings UI in `ui/`, tests in `test/` (`npm test`).
 - `pc/installer/` – builds `LumenDeskSetup.exe` (`npm run installer`): the server is bundled with esbuild, packed with Node.js into one exe (Node single executable application) and wrapped with [Inno Setup](https://jrsoftware.org/isinfo.php). It also includes the tablet app, which the PC offers to tablets as an update. User data lives in `%APPDATA%\Lumen Desk`.
 - `tablet/` – Android app (Kotlin, Jetpack Compose, Android 7.0+). Build with `./gradlew assembleRelease` (JDK 17, Android SDK 34).
-- `phone/` – Lumen Mirror, the phone app.
 - `shared/` – icons and clock fonts used by both. `docs/` – the live demo and screenshots (GitHub Pages).
 
 How it works: encrypted WebSocket for the tablet on port 47801, auto-discovery over UDP broadcast (port 47802), the settings window on `http://127.0.0.1:47803` (only reachable from the PC itself). Keyboard, mouse, volume and windows are controlled through small PowerShell helpers (Win32 / Core Audio). The second monitor is captured with ffmpeg `ddagrab`, encoded to H.264 and decoded by the tablet's hardware. Notifications are read from the Windows notification database (read-only). Optional env var `LUMEN_PC_NAME` changes the PC name shown on the tablet.

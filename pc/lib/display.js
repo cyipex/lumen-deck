@@ -5,6 +5,7 @@ const { spawn, execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const input = require('./input');
+const vmonitor = require('./vmonitor');
 
 const paths = require('./paths');
 const FFMPEG = path.join(paths.BIN, 'ffmpeg.exe');
@@ -170,9 +171,14 @@ function startStream(ws, amf = true) {
   });
 }
 
+// Called when nobody is watching any more (server.js turns the virtual monitor off after a while).
+let onIdle = () => {};
+
 async function open(ws) {
   close();
   try {
+    // The virtual monitor may be switched off while it is not used: attach it first.
+    try { await vmonitor.on(); } catch {}
     await findTarget();
   } catch (e) {
     out(ws, { t: 'error', text: e.message });
@@ -181,7 +187,7 @@ async function open(ws) {
   if (ws.readyState !== 1) return;
   out(ws, { t: 'info', w: target.screen.w, h: target.screen.h });
   startStream(ws);
-  ws.on('close', () => { if (viewer && viewer.ws === ws) close(); });
+  ws.on('close', () => { if (viewer && viewer.ws === ws) close(); onIdle(); });
 }
 
 function close() {
@@ -263,4 +269,7 @@ function drawRelease() {
   drawDown = false;
 }
 
-module.exports = { open, close, pointer, findTarget, screens, drawScreen, draw, drawRelease };
+const watching = () => !!viewer;
+const setOnIdle = (fn) => { onIdle = fn; };
+
+module.exports = { watching, setOnIdle, open, close, pointer, findTarget, screens, drawScreen, draw, drawRelease };

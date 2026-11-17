@@ -26,7 +26,7 @@ object Hub {
     private val holds = AtomicInteger()
 
     /**
-     * A screen you watch without touching is open (second monitor, phone, drawing, presentation, pairing):
+     * A screen you watch without touching is open (second monitor, drawing, presentation, pairing):
      * the screen then neither dims nor shows the screensaver. Each screen calls awake(true) once and awake(false) when it closes.
      */
     fun awake(on: Boolean) {

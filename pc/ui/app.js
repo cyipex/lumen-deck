@@ -793,6 +793,30 @@ $('#netList').onclick = async (e) => {
   try { await navigator.clipboard.writeText(t); toast('Copied'); } catch { toast(t); }
 };
 
+// The virtual monitor (Second monitor): on / off right now, and the automatic switch-off.
+function showVm(v) {
+  $('#vmAuto').checked = !!v.auto;
+  if (!v.found) {
+    $('#vmList').innerHTML = '<p class="muted">No virtual monitor in Windows. Install Virtual Display Driver (see Extras) to use the tablet as a second monitor.</p>';
+    return;
+  }
+  const state = v.attached ? (v.inUse ? 'On – the tablet is showing it' : `On · ${v.w} × ${v.h}`) : 'Off – Windows does not see it';
+  $('#vmList').innerHTML = `<div class="item"><div class="grow"><b>${state}</b><small>${v.auto ? 'Turns on by itself when the tablet opens Second monitor' : 'Stays as you set it'}</small></div>`
+    + (v.attached ? `<button class="btn small" data-vm="off" ${v.inUse ? 'disabled' : ''}>Turn off</button>` : '<button class="btn small primary" data-vm="on">Turn on</button>') + '</div>';
+}
+async function renderVm() {
+  try { showVm(await api('GET', '/api/vmonitor')); } catch (e) { $('#vmList').innerHTML = `<p class="muted">${esc(e.message)}</p>`; }
+}
+$('#vmList').onclick = async (e) => {
+  const b = e.target.closest('[data-vm]');
+  if (!b) return;
+  b.disabled = true;
+  try { showVm(await api('POST', '/api/vmonitor', { on: b.dataset.vm === 'on' })); } catch (err) { toast(err.message); renderVm(); }
+};
+$('#vmAuto').onchange = async (e) => {
+  try { showVm(await api('POST', '/api/vmonitor', { auto: e.target.checked })); } catch (err) { toast(err.message); }
+};
+
 async function renderBackups() {
   try {
     const list = await api('GET', '/api/backups');
@@ -897,7 +921,7 @@ function showView() {
   if (v === 'saver') renderSaver();
   if (v === 'lights') renderLights();
   if (v === 'spotify') renderSpotify();
-  if (v === 'tablet') { renderTablet(); renderNetwork(); renderBackups(); renderLog(); renderNotify(); renderTools(); }
+  if (v === 'tablet') { renderTablet(); renderNetwork(); renderVm(); renderBackups(); renderLog(); renderNotify(); renderTools(); }
 }
 window.addEventListener('hashchange', showView);
 

@@ -16,6 +16,7 @@ const actions = require('./lib/actions');
 const picker = require('./lib/picker');
 const audio = require('./lib/audio');
 const display = require('./lib/display');
+const vmonitor = require('./lib/vmonitor');
 const browsers = require('./lib/browsers');
 const usb = require('./lib/usb');
 const tools = require('./lib/tools');
@@ -455,6 +456,15 @@ const routes = {
   'GET /api/notify/apps': () => notify.knownApps(),
   // How the tablet can reach this PC (shown in the settings window, which only this PC can open).
   'GET /api/network': async () => ({ pc: PC_NAME, port: PORT, usb: usb.connected(), ...(await netinfo.info()) }),
+  // The virtual monitor (Second monitor): status, on/off now, and whether it turns off by itself.
+  'GET /api/vmonitor': async () => ({ ...(await vmonitor.status()), auto: config.get().vmonitor.auto, inUse: display.watching() }),
+  'POST /api/vmonitor': async (req) => {
+    const body = await readBody(req);
+    if (typeof body.auto === 'boolean') config.update((c) => { c.vmonitor.auto = body.auto; });
+    if (body.on === true) await vmonitor.on();
+    if (body.on === false && !display.watching()) await vmonitor.off();
+    return { ...(await vmonitor.status()), auto: config.get().vmonitor.auto, inUse: display.watching() };
+  },
   'GET /api/icons': () => JSON.parse(fs.readFileSync(ICONS_FILE, 'utf8')),
   'GET /api/status': () => panelStatus(),
   'POST /api/run': async (req) => {
@@ -783,8 +793,23 @@ const onListenError = (e) => {
 server.on('error', onListenError);
 settingsServer.on('error', onListenError);
 
+// The virtual monitor is detached while the tablet does not show it (so the mouse cannot get lost on it).
+vmonitor.init({
+  loadPos: () => config.get().vmonitor.pos,
+  savePos: (pos) => config.update((c) => { c.vmonitor.pos = pos; })
+});
+let vmIdle = null;
+const vmAutoOff = (delay) => {
+  clearTimeout(vmIdle);
+  vmIdle = setTimeout(() => {
+    if (config.get().vmonitor.auto && !display.watching()) vmonitor.off().catch(() => {});
+  }, delay);
+};
+display.setOnIdle(() => vmAutoOff(8000));
+
 server.listen(PORT, '0.0.0.0', () => {
   if (!QUIET) usb.start(PORT);
+  if (!QUIET) vmAutoOff(5000);
 });
 settingsServer.listen(SETTINGS_PORT, '127.0.0.1', () => {
   console.log(`Lumen Desk running: ${SETTINGS_URL}`);

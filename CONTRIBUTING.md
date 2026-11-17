@@ -15,7 +15,6 @@ Thanks for wanting to help! Bug reports, ideas, translations and code are all we
 |---|---|---|
 | `pc/` | The Windows app: server for the tablet, settings window (`pc/ui`), installer | Node.js, plain HTML/CSS/JS |
 | `tablet/` | The Android tablet app | Kotlin, Jetpack Compose |
-| `phone/` | Lumen Mirror – shows an Android phone on the tablet | Kotlin |
 | `shared/` | Icons and clock fonts used by both | JSON, TTF |
 | `docs/` | Live demo (GitHub Pages) and screenshots | HTML |
 
@@ -46,7 +45,7 @@ cd tablet
 3. Run `npm test` in `pc/` if you touched the PC side, and build the tablet app if you touched it.
 4. Describe what changed and how you tested it. Screenshots for anything visual.
 
-The CI builds the tablet and phone apps and runs the PC tests on every pull request.
+The CI builds the tablet app and runs the PC tests on every pull request.
 
 ## Ground rules
 

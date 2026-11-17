@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- **Virtual monitor on/off** – the second monitor's virtual screen turns off by itself while the tablet is not showing it (no more lost mouse), or by hand in the PC settings → Tablet.
+- **Lumen Mirror removed** – the phone-mirroring app and its dock button are gone.
+
 ## 1.1.0 – 2026-11-17
 
 ### New
