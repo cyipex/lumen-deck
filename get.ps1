@@ -16,6 +16,8 @@ Invoke-WebRequest "$base/LumenDeskSetup.exe" -OutFile $file -UseBasicParsing
 # The installer must match the checksum published with the release.
 try {
   $sums = (Invoke-WebRequest "$base/SHA256SUMS.txt" -UseBasicParsing).Content
+  # GitHub serves release files as binary, so the text may arrive as bytes.
+  if ($sums -is [byte[]]) { $sums = [Text.Encoding]::UTF8.GetString($sums) }
   $want = ($sums -split "`n" | Where-Object { $_ -match 'LumenDeskSetup\.exe' } | ForEach-Object { ($_ -split '\s+')[0] }) | Select-Object -First 1
   $have = (Get-FileHash $file -Algorithm SHA256).Hash
   if (-not $want -or $want.ToLower() -ne $have.ToLower()) {
