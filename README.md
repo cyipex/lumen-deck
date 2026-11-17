@@ -1,6 +1,6 @@
 <h1 align="center">Lumen Desk</h1>
 
-<p align="center"><b>Turn your old Android tablet into a free control panel – and home screen – for your Windows PC.</b></p>
+<p align="center"><b>Turn your old Android tablet or phone into a free control panel – and home screen – for your Windows PC.</b></p>
 
 <p align="center">
   <a href="https://cyipex.github.io/lumen-desk/"><b>Try the live demo</b></a> ·
@@ -17,10 +17,10 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
 </p>
 
-<p align="center"><a href="https://cyipex.github.io/lumen-desk/"><img src="docs/screenshots/demo.gif" width="900" alt="Lumen Desk on a tablet: home screen, shortcuts, touchpad with keyboard, volume mixer and clock screensaver"></a><br>
-<sub>The tablet screen with demo data. <a href="https://cyipex.github.io/lumen-desk/">Try it in your browser</a> – no install.</sub></p>
+<p align="center"><a href="https://cyipex.github.io/lumen-desk/"><img src="docs/screenshots/demo.gif" width="900" alt="Lumen Desk on a tablet or phone: home screen, shortcuts, touchpad with keyboard, volume mixer and clock screensaver"></a><br>
+<sub>The screen with demo data. <a href="https://cyipex.github.io/lumen-desk/">Try it in your browser</a> – no install.</sub></p>
 
-Lumen Desk is a small Windows app plus an Android app. The tablet becomes a **Stream-Deck-style panel**: a big clock, Spotify, the volume of every app, one-tap shortcuts, a touchpad and keyboard, a drawing tablet, a presentation remote – or a **second monitor**. It can replace the tablet's **home screen**, so it always comes back to the panel. Free, open source, no account, no cloud.
+Lumen Desk is a small Windows app plus an Android app for a **tablet or phone**. The device becomes a **Stream-Deck-style panel**: a big clock, Spotify, the volume of every app, one-tap shortcuts, a touchpad and keyboard, a drawing tablet, a presentation remote – or a **second monitor**. It can replace the device's **home screen**, so it always comes back to the panel. Free, open source, no account, no cloud.
 
 ## Install in one command
 
@@ -30,15 +30,15 @@ On the PC, open **PowerShell** and paste:
 irm https://raw.githubusercontent.com/cyipex/lumen-desk/main/get.ps1 | iex
 ```
 
-It downloads the latest installer from this repo's [Releases](https://github.com/cyipex/lumen-desk/releases/latest), checks its SHA-256 and starts it. Then on the tablet open
-**[github.com/cyipex/lumen-desk/releases/latest/download/lumen-desk.apk](https://github.com/cyipex/lumen-desk/releases/latest/download/lumen-desk.apk)**, install it, and allow the tablet on the PC when both show the same 6-digit code. That's it – [step by step below](#set-it-up-step-by-step).
+It downloads the latest installer from this repo's [Releases](https://github.com/cyipex/lumen-desk/releases/latest), checks its SHA-256 and starts it. Then on the tablet or phone open
+**[github.com/cyipex/lumen-desk/releases/latest/download/lumen-desk.apk](https://github.com/cyipex/lumen-desk/releases/latest/download/lumen-desk.apk)**, install it, and allow it on the PC when both show the same 6-digit code. That's it – [step by step below](#set-it-up-step-by-step).
 
 ## Why Lumen Desk?
 
 | | Lumen Desk | A Stream Deck |
 |---|---|---|
-| Price | **Free** – uses the tablet in your drawer | from about €150 |
-| Screen | 10″ touch screen: clock, Spotify, mixer, any layout | 15 small keys |
+| Price | **Free** – uses the old tablet or phone in your drawer | from about €150 |
+| Screen | the whole touch screen of a tablet or phone: clock, Spotify, mixer, any layout | 15 small keys |
 | Touchpad, keyboard, drawing tablet, second monitor | ✓ | – |
 | Home screen of the device (always returns to the panel) | ✓ | – |
 | Works without an account or cloud | ✓ | ✓ |
@@ -62,12 +62,12 @@ It downloads the latest installer from this repo's [Releases](https://github.com
 - 🖥️ **Second monitor** – the tablet becomes an extra screen for the PC, with touch.
 - 📱 **Lumen Mirror** – see and control an Android phone (for example one with a broken screen) on the tablet.
 
-**The tablet itself**
-- 🏠 **Home screen (launcher)** – set Lumen Desk as the tablet's launcher: after power-on or Home it always goes straight back to the panel, with no app drawer in the way. The tablet's own apps are one tap away.
+**The tablet or phone itself**
+- 🏠 **Home screen (launcher)** – set Lumen Desk as the device's launcher: after power-on or Home it always goes straight back to the panel, with no app drawer in the way. The device's own apps are one tap away.
 - 🌙 **Clock screensaver** after 2 minutes or from its button – your photo, font, position, size and color, set on the PC; one touch closes it without pressing anything underneath.
 - 🔋 Battery saving: the screen dims when nobody touches it.
-- 📐 Fits any screen: 10″ tablets, 16:9 and 4:3 tablets, even phones held sideways.
-- ⬆️ **Updates over Wi-Fi** – the PC offers new tablet versions; no cable needed.
+- 📐 Fits any screen: 10″ tablets, 16:9 and 4:3 tablets, and phones held sideways.
+- ⬆️ **Updates over Wi-Fi** – the PC offers new versions of the app; no cable needed.
 
 **Your style**
 - 🎨 10 background colors, 20 clock fonts plus your own, two player styles – changed on the tablet or the PC, live.
@@ -106,6 +106,8 @@ It downloads the latest installer from this repo's [Releases](https://github.com
 
 ## Set it up step by step
 
+> Below it says *tablet* – a **phone** works exactly the same way (hold it sideways).
+
 ### Step 1 – On your PC
 Use the [one command](#install-in-one-command) above, or download **`LumenDeskSetup.exe`** from the [Releases](../../releases) page and run it (**Next → Install → Finish**).
 
@@ -113,8 +115,8 @@ Lumen Desk runs in the background, starts with Windows, and the **Lumen Desk** i
 
 > **"Windows protected your PC"?** The installer is not code-signed (that costs money for a free project), so Windows warns about it the first time. Click **More info → Run anyway**.
 
-### Step 2 – On your tablet
-1. Download **`lumen-desk.apk`** from the [Releases](../../releases) page – open the link directly on the tablet.
+### Step 2 – On your tablet or phone
+1. Download **`lumen-desk.apk`** from the [Releases](../../releases) page – open the link directly on the device.
 2. Open the file to install it. If Android asks, allow installing apps from this source.
 3. Open **Lumen Desk** on the tablet. It finds your PC by itself.
 
@@ -123,7 +125,7 @@ The tablet shows a 6-digit code. On the PC, open the **Lumen Desk** settings →
 
 Done! 🎉 Now make it yours: in the settings window click a tile to change what it does, drag tiles around, add pages, or pick a color under **Appearance** and style the clock under **Screensaver**.
 
-**Make it the home screen:** open the ⚙ settings on the tablet (bottom of the shortcut column) → **Set as default launcher**.
+**Make it the home screen:** open the ⚙ settings on the tablet or phone (bottom of the shortcut column) → **Set as default launcher**.
 
 ---
 

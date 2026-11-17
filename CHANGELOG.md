@@ -14,7 +14,7 @@
 - **Lumen Mirror** – a phone app that shows and controls an Android phone on the tablet.
 - **Connection details** on the tablet and the PC (addresses, Wi-Fi, USB).
 - **Layout backups** – the PC keeps the last 30 versions of your pages and tiles; restore with one click.
-- Works on phones and other tablets too (16:9, 4:3) – the layout scales to fit.
+- Works on phones too, and on 16:9 and 4:3 tablets – the layout scales to fit.
 - One-command install: `irm https://raw.githubusercontent.com/cyipex/lumen-desk/main/get.ps1 | iex`.
 
 ### Security
