@@ -152,8 +152,122 @@ select { font: inherit; color: #fff; background: rgba(255,255,255,0.06); border:
 /* Phones held upright: the tablet screen is landscape, so suggest turning the phone. */
 .turn { display: none; max-width: 1240px; margin: 0 auto 10px; padding: 0 20px; color: var(--g1); font-size: 14px; }
 @media (max-width: 700px) and (orientation: portrait) { .turn { display: block; } .top .btn { flex: 1 1 auto; justify-content: center; } }
+.round { display: flex; align-items: center; justify-content: center; cursor: pointer; flex: 0 0 auto; }
+.round svg { width: 22px; height: 22px; }
+.pres .big span svg { width: 72px; height: 72px; }
+/* cards that open over the tablet screen */
+.sheet { position: absolute; inset: 0; background: rgba(5,5,5,0.6); display: none; align-items: center; justify-content: center; }
+.sheet.show { display: flex; }
+.card { border-radius: 40px; padding: 36px; width: 640px; background: rgba(12,12,13,0.82); border: 1px solid rgba(255,255,255,0.18); display: flex; flex-direction: column; gap: 16px; }
+.card h2 { margin: 0; font-size: 28px; font-weight: 600; }
+.card p { margin: 0; color: var(--g1); font-size: 17px; line-height: 1.45; }
+.card .fact small { display: block; color: var(--g2); font-size: 13px; }
+.card .fact b { font-size: 18px; font-weight: 400; }
+.card .row { display: flex; gap: 10px; flex-wrap: wrap; }
+.tb { font: inherit; font-size: 16px; font-weight: 500; padding: 14px 22px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.08); color: #fff; cursor: pointer; }
+.tb.primary { background: #fff; color: #050505; border-color: #fff; }
+.code { font-size: 54px; font-weight: 600; letter-spacing: 0.08em; }
+.ubar { height: 10px; border-radius: 5px; background: rgba(255,255,255,0.12); overflow: hidden; }
+.ubar i { display: block; height: 100%; background: #fff; border-radius: 5px; }
+/* tablet settings */
+.tset { position: absolute; inset: 0; display: none; padding: 24px; gap: 18px; background: var(--ink); }
+.tset.show { display: flex; }
+.tset .col { border-radius: 40px; padding: 32px; display: flex; flex-direction: column; gap: 14px; overflow: hidden; }
+.tset .lbl { font-size: 15px; color: var(--g2); margin-top: 6px; }
+.tset .sw { display: flex; gap: 10px; flex-wrap: wrap; }
+.tset .sw i { width: 52px; height: 52px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.25); cursor: pointer; }
+.tset .sw i.sel { border: 3px solid #fff; }
+.tset .fonts { display: flex; gap: 10px; }
+.tset .fonts div { width: 150px; flex: 0 0 150px; border-radius: 22px; padding: 14px 0; text-align: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); cursor: pointer; }
+.tset .fonts div.sel { background: rgba(255,255,255,0.16); border-color: #fff; }
+.tset .fonts span { display: block; font-size: 40px; line-height: 1.15; }
+.tset .fonts small { color: var(--g2); font-size: 13px; }
+.choice { display: flex; gap: 10px; }
+.choice div { flex: 1; text-align: center; padding: 14px; border-radius: 22px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.05); font-size: 16px; font-weight: 500; cursor: pointer; }
+.choice div.sel { background: #fff; color: #050505; }
+/* presenter, mirror, apps */
+.pres { position: absolute; inset: 0; display: none; flex-direction: column; gap: 18px; padding: 24px; background: var(--ink); }
+.pres.show { display: flex; }
+.pres .head { display: flex; align-items: center; gap: 18px; height: 64px; }
+.pres .big { flex: 1; display: flex; gap: 18px; }
+.pres .big > div { border-radius: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; font-size: 24px; color: var(--g0); cursor: pointer; }
+.pres .big svg { width: 72px; height: 72px; }
+.pres .acts { display: flex; gap: 12px; height: 72px; }
+.pres .acts div { flex: 1; border-radius: 24px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 500; cursor: pointer; }
+.timer { border-radius: 24px; padding: 6px 22px; text-align: center; cursor: pointer; }
+.timer b { display: block; font-size: 28px; }
+.timer small { font-size: 11px; color: var(--g2); }
+.mirror { position: absolute; inset: 0; display: none; background: #000; }
+.mirror.show { display: block; }
+.phone { position: absolute; left: 50%; top: 24px; bottom: 24px; transform: translateX(-50%); aspect-ratio: 9 / 18.5; border-radius: 36px; background: linear-gradient(160deg, #1d3b6b, #0b0f1a 60%); border: 1px solid rgba(255,255,255,0.15); overflow: hidden; }
+.phone .ph-time { text-align: center; color: #fff; font-size: 64px; font-weight: 300; margin-top: 70px; }
+.phone .ph-apps { position: absolute; left: 22px; right: 22px; bottom: 40px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+.phone .ph-apps i { aspect-ratio: 1; border-radius: 16px; display: block; }
+.side { position: absolute; right: 24px; top: 24px; display: flex; flex-direction: column; gap: 12px; }
+.apps { position: absolute; inset: 0; display: none; padding: 40px; background: var(--ink); }
+.apps.show { display: block; }
+.apps .ag { display: grid; grid-template-columns: repeat(6, 1fr); gap: 26px; margin-top: 30px; }
+.apps .ag div { display: flex; flex-direction: column; align-items: center; gap: 10px; font-size: 15px; color: var(--g1); }
+.apps .ag i { width: 84px; height: 84px; border-radius: 24px; display: block; }
+
+/* ---------- the PC settings window, below the tablet ---------- */
+.pcwrap { max-width: 1240px; margin: 0 auto 30px; padding: 0 20px; }
+.pcwrap h3 { font-family: Fraunces, serif; font-weight: 300; font-size: 30px; margin: 10px 0 4px; letter-spacing: -0.02em; }
+.pcwrap > p { margin: 0 0 14px; color: var(--g1); }
+.win { border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.14); background: #0e0e10; box-shadow: 0 30px 80px rgba(0,0,0,0.5); }
+.win .bar { position: static; display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; background: #1a1a1c; font-size: 13px; color: var(--g2); border-radius: 0; margin: 0; }
+.win .bar i { position: static; width: 11px; height: 11px; border-radius: 50%; background: #3a3a3d; }
+.pcb { display: grid; grid-template-columns: 190px 1fr; min-height: 470px; background: radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--tint) 70%, transparent), #0b0b0c 55%); }
+.pcnav { padding: 18px 12px; border-right: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 4px; }
+.pcnav .brand { font-family: Fraunces, serif; font-size: 22px; padding: 0 10px 14px; }
+.pcnav a { padding: 9px 12px; border-radius: 10px; font-size: 14px; color: var(--g1); cursor: pointer; display: flex; justify-content: space-between; }
+.pcnav a.sel { background: rgba(255,255,255,0.12); color: #fff; }
+.pcnav .badge { background: #fff; color: #050505; border-radius: 9px; font-size: 11px; padding: 1px 7px; font-weight: 600; }
+.pcnav .conn { margin-top: auto; font-size: 12px; color: var(--g2); padding: 10px; display: flex; gap: 8px; align-items: center; }
+.pcnav .conn i { width: 7px; height: 7px; border-radius: 50%; background: #8fd6a8; }
+.pcnav .conn.off i { background: #ff8a65; }
+.pcmain { padding: 22px 24px; min-width: 0; }
+.pcmain h4 { margin: 0 0 12px; font-size: 22px; font-weight: 600; }
+.pcard { border-radius: 16px; padding: 16px 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); margin-bottom: 14px; }
+.pcard .t { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+.pcard .m { font-size: 13px; color: var(--g2); }
+.pcgrid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(220px, 1fr); gap: 16px; }
+.mini { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.mini div { aspect-ratio: 1.2; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); padding: 8px; font-size: 12px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; color: var(--g1); }
+.mini div.sel { border-color: #fff; background: rgba(255,255,255,0.16); color: #fff; }
+.mini svg { width: 20px; height: 20px; }
+.insp label { display: block; font-size: 12px; color: var(--g2); margin: 0 0 4px; }
+.insp input, .insp select { width: 100%; margin-bottom: 12px; }
+input[type=text] { font: inherit; color: #fff; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.16); border-radius: 10px; padding: 8px 10px; }
+.icons { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-bottom: 12px; }
+.icons div { aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid transparent; cursor: pointer; color: var(--g1); }
+.icons div.sel { border-color: #fff; color: #fff; background: rgba(255,255,255,0.1); }
+.icons svg { width: 18px; height: 18px; }
+.pbtn { font: inherit; font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.08); color: #fff; cursor: pointer; }
+.pbtn.primary { background: #fff; color: #050505; }
+.pbtn.glow { box-shadow: 0 0 0 4px rgba(255,255,255,0.25); animation: pulse 1.2s infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 9px rgba(255,255,255,0.08); } }
+.item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.07); font-size: 14px; }
+.item:first-of-type { border-top: 0; }
+.item .grow { flex: 1; }
+.item small { display: block; color: var(--g2); font-size: 12px; }
+.sws { display: flex; gap: 8px; flex-wrap: wrap; }
+.sws i { width: 34px; height: 34px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+.sws i.sel { border-color: #fff; }
+.flist { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.flist div { border-radius: 12px; padding: 10px 0; text-align: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; }
+.flist div.sel { border-color: #fff; background: rgba(255,255,255,0.14); }
+.flist span { display: block; font-size: 30px; line-height: 1.1; }
+.flist small { color: var(--g2); font-size: 11px; }
+.posg { display: grid; grid-template-columns: repeat(3, 36px); gap: 5px; }
+.posg i { height: 24px; border-radius: 6px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); cursor: pointer; }
+.posg i.sel { background: #fff; }
+.tourbar { max-width: 1240px; margin: 0 auto 8px; padding: 0 20px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.tourbar .step { color: var(--g1); font-size: 14px; }
+@media (max-width: 760px) { .pcb { grid-template-columns: 1fr; } .pcnav { flex-direction: row; flex-wrap: wrap; border-right: 0; border-bottom: 1px solid rgba(255,255,255,0.08); } .pcnav .brand, .pcnav .conn { display: none; } .pcgrid { grid-template-columns: 1fr; } }
+
 /* ?shot: only the screen, for the README screenshots. */
-.shot .top, .shot .controls, .shot .note, .shot .turn { display: none !important; }
+.shot .top, .shot .controls, .shot .note, .shot .turn, .shot .pcwrap, .shot .tourbar { display: none !important; }
 .shot .frame { max-width: none; padding: 0; margin: 0; }
 .shot .device { padding: 0; border-radius: 0; box-shadow: none; }
 .shot .screen { border-radius: 0; }
@@ -166,12 +280,16 @@ select { font: inherit; color: #fff; background: rgba(255,255,255,0.06); border:
 <header class="top">
   <div class="grow">
     <h1>Lumen Desk</h1>
-    <p>Your old Android tablet or phone as a free control panel for your Windows PC. This is the real app screen, running in your browser with demo data – tap the tiles, play the song, open the touchpad, the screensaver or the drawing tablet.</p>
+    <p>Your old Android tablet or phone as a free control panel for your Windows PC. Below is a clickable copy of the app screen and of the settings window on the PC, with demo data: tap anything, change the colors and tiles on the PC and watch the tablet follow, or walk through connecting a new tablet.</p>
   </div>
   <a class="btn primary" href="https://github.com/cyipex/lumen-desk/releases/latest">Download for Windows</a>
   <a class="btn" href="https://github.com/cyipex/lumen-desk">GitHub</a>
 </header>
 
+<div class="tourbar">
+  <button class="btn" id="tourBtn">▶ Show how a tablet connects</button>
+  <span class="step" id="tourStep"></span>
+</div>
 <div class="controls">
   <span>Color</span><div class="swatches" id="swatches"></div>
   <span>Clock font</span>
@@ -198,7 +316,7 @@ select { font: inherit; color: #fff; background: rgba(255,255,255,0.06); border:
         <div class="cc-left">
           <div>
             <div class="greet" id="greet">Good evening</div>
-            <div class="pill glass" data-toast="Shows how the tablet is connected: USB cable or Wi-Fi, encrypted"><span class="dot"></span>Desktop PC · Wi-Fi <span data-i="chevron-right" style="width:13px;height:13px;display:inline-flex"></span></div>
+            <div class="pill glass" data-open="conn" id="pill"><span class="dot" id="pillDot"></span><span id="pillText">Desktop PC · Wi-Fi</span> <span data-i="chevron-right" style="width:13px;height:13px;display:inline-flex"></span></div>
           </div>
           <div>
             <div class="time" id="time">21:14</div>
@@ -208,18 +326,18 @@ select { font: inherit; color: #fff; background: rgba(255,255,255,0.06); border:
           <div class="chips">
             <div class="chip glass">CPU <b id="cpu">14 %</b></div>
             <div class="chip glass">RAM <b id="ram">48 %</b></div>
-            <div class="chip glass" id="claudeChip" data-toast="Your Claude usage limit, from Claude Code on the PC">Claude <b id="claude">34 %</b></div>
+            <div class="chip glass" id="claudeChip" data-open="claudeCard" style="cursor:pointer">Claude <b id="claude">34 %</b></div>
           </div>
         </div>
         <div class="dock">
           <div class="dk glass" data-i="touchpad" data-open="pad"></div>
-          <div class="dk glass" data-i="slides" data-toast="Presentation remote: big Next / Back, timer, laser pointer, volume keys switch slides"></div>
+          <div class="dk glass" data-i="slides" data-open="pres"></div>
           <div class="dk glass" data-i="pen" data-open="draw"></div>
-          <div class="dk glass" data-i="phone" data-toast="Lumen Mirror: see and control your Android phone on the tablet"></div>
+          <div class="dk glass" data-i="phone" data-open="mirror"></div>
           <div class="dk glass" data-i="clock" data-open="saver"></div>
           <div class="sp"></div>
-          <div class="dk glass" data-i="grid" data-toast="The tablet's own apps"></div>
-          <div class="dk glass" data-i="gear" data-toast="Settings: colors, clock fonts, screensaver, connection"></div>
+          <div class="dk glass" data-i="grid" data-open="apps"></div>
+          <div class="dk glass" data-i="gear" data-open="tset"></div>
         </div>
       </div>
       <div class="right">
@@ -282,15 +400,106 @@ select { font: inherit; color: #fff; background: rgba(255,255,255,0.06); border:
     <canvas id="canvas" width="1168" height="768"></canvas>
   </div>
 
+  <!-- tablet settings -->
+  <div class="over tset" id="tset">
+    <div class="col glass" style="flex:1.35">
+      <div style="display:flex;align-items:center"><h2 style="flex:1;margin:0;font-size:32px">Settings</h2><div class="round glass" data-i="close" data-close="tset" style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer"></div></div>
+      <div class="lbl">Background color</div><div class="sw" id="tsetTints"></div>
+      <div class="lbl">Clock font</div><div class="fonts" id="tsetFonts"></div>
+      <div class="lbl">Clock screensaver</div>
+      <div class="choice" id="tsetSaver"><div class="sel" data-sv="1">After 2 min</div><div data-sv="0">Only from its button</div></div>
+      <div class="lbl">Notifications from the PC</div>
+      <div class="choice" id="tsetNotify"><div class="sel">Show</div><div>Off</div></div>
+    </div>
+    <div class="col glass" style="flex:1">
+      <h2 style="margin:0;font-size:22px">Connection to PC</h2>
+      <p style="color:var(--g1);margin:0" id="tsetConn">Connected to Desktop PC over Wi-Fi</p>
+      <p style="color:var(--g2);margin:0;font-size:14px">The tablet finds the PC by itself (Wi-Fi or USB cable). If that fails, enter the address shown in the PC settings.</p>
+      <div style="height:20px"></div>
+      <h2 style="margin:0;font-size:22px">Launcher</h2>
+      <p style="color:var(--g1);margin:0">Lumen Desk is the home screen: after power-on or Home the tablet comes straight back to the panel.</p>
+    </div>
+  </div>
+
+  <!-- presentation remote -->
+  <div class="over pres" id="pres">
+    <div class="head"><div class="round glass dk" data-i="close" data-close="pres" style="width:44px;height:44px;border-radius:50%"></div>
+      <div style="flex:1"><div style="font-size:24px;font-weight:600">Presentation</div><div style="font-size:14px;color:var(--g2)">Volume buttons: up = next slide, down = back</div></div>
+      <div class="timer glass" id="timer"><b id="timerT">0:00</b><small id="timerS">starts with the first slide</small></div></div>
+    <div class="big"><div class="glass" style="flex:0.9" data-slide="-1"><span data-i="arrow-left"></span>Back</div>
+      <div class="glass" style="flex:1.1;font-size:15px;color:var(--g2);text-align:center;padding:0 40px">Pointer<br>Drag to move the mouse · tap = click</div>
+      <div class="glass" style="flex:1.6" data-slide="1"><span data-i="arrow-right"></span>Next</div></div>
+    <div class="acts"><div class="glass" data-toast="F5 – the slideshow starts">Start</div><div class="glass" data-toast="Shift + F5 – from this slide">From this slide</div><div class="glass" data-toast="B – black screen">Black screen</div><div class="glass" data-toast="Ctrl + L – laser pointer">Laser</div><div class="glass" data-toast="Esc – slideshow ended">End</div></div>
+  </div>
+
+  <!-- Lumen Mirror -->
+  <div class="over mirror" id="mirror">
+    <div class="phone"><div class="ph-time" id="phTime">21:14</div>
+      <div class="ph-apps"><i style="background:#3ddc84"></i><i style="background:#f4b400"></i><i style="background:#db4437"></i><i style="background:#4285f4"></i><i style="background:#9b5de5"></i><i style="background:#00bbf9"></i><i style="background:#f15bb5"></i><i style="background:#fee440"></i></div></div>
+    <div class="side"><div class="round glass dk" data-i="close" data-close="mirror" style="width:52px;height:52px;border-radius:50%"></div><div class="round glass dk" data-i="back" data-toast="Back on the phone" style="width:52px;height:52px;border-radius:50%"></div><div class="round glass dk" data-i="home" data-toast="Home on the phone" style="width:52px;height:52px;border-radius:50%"></div><div class="round glass dk" data-i="keyboard" data-toast="Type on the phone" style="width:52px;height:52px;border-radius:50%"></div></div>
+    <div style="position:absolute;left:24px;bottom:24px;color:var(--g2);font-size:15px;width:300px">Lumen Mirror: your phone's screen on the tablet – touch it like the phone itself. Handy for a phone with a broken screen.</div>
+  </div>
+
+  <!-- the tablet's own apps -->
+  <div class="over apps" id="apps">
+    <div style="display:flex;align-items:center"><div style="flex:1;font-size:30px;font-weight:600">Apps</div><div class="round glass dk" data-i="close" data-close="apps" style="width:48px;height:48px;border-radius:50%"></div></div>
+    <div class="ag"><div><i style="background:#4285f4"></i>Chrome</div><div><i style="background:#1db954"></i>Spotify</div><div><i style="background:#ff0000"></i>YouTube</div><div><i style="background:#5865f2"></i>Discord</div><div><i style="background:#ea4335"></i>Gmail</div><div><i style="background:#fbbc04"></i>Keep</div><div><i style="background:#34a853"></i>Maps</div><div><i style="background:#888"></i>Settings</div><div><i style="background:#e50914"></i>Netflix</div><div><i style="background:#00a8e1"></i>Weather</div><div><i style="background:#a259ff"></i>Calendar</div><div><i style="background:#25d366"></i>WhatsApp</div></div>
+  </div>
+
+  <!-- cards: connection, Claude, pairing -->
+  <div class="sheet" id="conn"><div class="card glass">
+    <h2>Connection</h2>
+    <div class="fact"><small>Status</small><b id="connStatus">Connected to Desktop PC over Wi-Fi</b></div>
+    <div class="fact"><small>PC address</small><b>192.0.2.10:47801 (found by itself)</b></div>
+    <div class="fact"><small>This tablet</small><b>192.0.2.42 · Wi-Fi "Home"</b></div>
+    <p style="font-size:15px;color:var(--g2)">The connection is encrypted. The PC must be on the same Wi-Fi, or connected by USB cable. The PC's addresses are shown on the PC: Lumen Desk settings → Tablet.</p>
+    <div class="row"><button class="tb primary" data-toast="Connecting again…">Try again</button><button class="tb" data-close="conn">Close</button></div>
+  </div></div>
+  <div class="sheet" id="claudeCard"><div class="card glass">
+    <h2>Claude usage</h2>
+    <div><div style="display:flex"><span style="flex:1;color:var(--g1)">Current 5-hour window</span><b style="font-size:22px">34 %</b></div><div class="ubar" style="margin-top:8px"><i style="width:34%"></i></div><small style="color:var(--g2)">Resets in 2 h 10 min</small></div>
+    <div><div style="display:flex"><span style="flex:1;color:var(--g1)">This week</span><b style="font-size:22px">12 %</b></div><div class="ubar" style="margin-top:8px"><i style="width:12%"></i></div><small style="color:var(--g2)">Resets Monday at 09:00</small></div>
+    <p style="font-size:15px;color:var(--g2)">From Claude Code on the PC (its status line) – no login, nothing fetched from the internet.</p>
+    <div class="row"><button class="tb" data-close="claudeCard">Close</button></div>
+  </div></div>
+  <div class="sheet" id="pairing"><div class="card glass">
+    <h2>Allow the tablet on the PC</h2>
+    <p>On the PC open Lumen Desk → Tablet. Press Allow only if it shows this same code:</p>
+    <div class="code" id="pairCode">482 913</div>
+    <p style="font-size:15px;color:var(--g2)">A different code means another device is in between – do not allow it then. You only need to do this once.</p>
+  </div></div>
+
   <div class="toast" id="toast"></div>
 </div></div></div></div>
+<section class="pcwrap">
+  <h3>…and the settings window on your PC</h3>
+  <p>Everything is set up here. Change something – the tablet above follows right away, just like the real app.</p>
+  <div class="win">
+    <div class="bar"><i></i><i></i><i></i><span style="margin-left:8px">Lumen Desk</span></div>
+    <div class="pcb">
+      <nav class="pcnav" id="pcnav">
+        <div class="brand">Lumen Desk</div>
+        <a data-view="panel" class="sel">Panel</a>
+        <a data-view="look">Appearance</a>
+        <a data-view="saver">Screensaver</a>
+        <a data-view="tablet">Tablet <span class="badge" id="pcBadge" hidden>1</span></a>
+        <div class="conn" id="pcConn"><i></i><span id="pcConnText">Tablet connected</span></div>
+      </nav>
+      <div class="pcmain" id="pcmain"></div>
+    </div>
+  </div>
+</section>
 <p class="note">Demo data only. In the real app the tablet talks to the Lumen Desk PC app over an encrypted connection (Wi-Fi or USB cable).</p>
 
 <script>
 const TINTS = [['Graphite', '#3A3A3D'], ['Ocean', '#2F4A8A'], ['Indigo', '#3A3478'], ['Lavender', '#5E4B8B'], ['Rose', '#7A4458'],
   ['Terracotta', '#7A3E2E'], ['Amber', '#8A5A2B'], ['Sand', '#7A6A4A'], ['Sage', '#4E6B5C'], ['Emerald', '#1F5E4E']];
-const HOME = [['bulb', 'Room light', 1], ['led', 'Desk LED', 0], ['mic-off', 'Mute mic', 0], ['record', 'Record', 0],
-  ['lock', 'Lock PC', 0], ['camera', 'Screenshot', 0], ['chat', 'Discord', 0], ['folder', 'Files', 0]];
+// The home page tiles: [icon, label, on, action]. The PC window below edits them.
+const HOME = [['bulb', 'Room light', 1, 'light'], ['led', 'Desk LED', 0, 'light'], ['mic-off', 'Mute mic', 0, 'toggle'], ['record', 'Record', 0, 'toggle'],
+  ['lock', 'Lock PC', 0, 'macro'], ['camera', 'Screenshot', 0, 'macro'], ['chat', 'Discord', 0, 'macro'], ['folder', 'Files', 0, 'macro']];
+const ACTIONS = { macro: 'Macro (steps on the PC)', toggle: 'Toggle macro (on / off)', light: 'Light (on / off)', touchpad: 'Touchpad and keyboard', presenter: 'Presentation remote', draw: 'Drawing tablet', display: 'Second monitor' };
+const FONTS = [['Fraunces', 150, '-0.035em'], ['Space Grotesk', 146, '-0.06em'], ['Outfit', 162, '-0.02em'], ['Bebas Neue', 176, '0.01em'], ['Anton', 140, '0em'], ['VT323', 182, '0em'], ['Pacifico', 112, '0em']];
+const look = { tint: '#8A5A2B', font: 0, saver: { bg: 'black', font: -1, pos: 'center', size: 100, auto: true } };
 const GRID = [['volume', 'Volume +'], ['volume-low', 'Volume −'], ['volume-x', 'Mute PC'], ['monitor', 'Desktop'], ['terminal', 'Task Manager'], ['globe', 'Browser'],
   ['monitor', 'Second monitor'], ['touchpad', 'Touchpad'], ['slides', 'Presentation'], ['pen', 'Drawing'], ['gamepad', 'Steam'], ['power', 'Sleep PC']];
 const MIX = [['PC', 62], ['Spotify', 70], ['Discord', 85], ['Chrome', 35], ['Game', 55]];
@@ -315,23 +524,31 @@ function toast(text) { const t = $('#toast'); t.textContent = text; t.classList.
 function clock() {
   const d = new Date(), h = d.getHours();
   const hm = String(h).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-  $('#time').textContent = hm; $('#saverTime').textContent = hm;
+  $('#time').textContent = hm; $('#saverTime').textContent = hm; $('#phTime').textContent = hm;
   const date = `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`;
   $('#date').textContent = date; $('#saverDate').textContent = date;
   $('#greet').textContent = h < 5 ? 'Good night' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : h < 22 ? 'Good evening' : 'Good night';
 }
 
 // ---------- tiles ----------
-const tileHtml = ([icon, label, on]) => `<div class="tile ${on ? 'on' : ''}" data-i="${icon}"><span>${label}</span></div>`;
+const tileHtml = ([icon, label, on], i) => `<div class="tile ${on ? 'on' : ''}" data-i="${icon}" data-home="${i}"><span>${label}</span></div>`;
 function tiles() {
   $('#tiles').innerHTML = HOME.map(tileHtml).join('');
   $('#gridTiles').innerHTML = GRID.map(tileHtml).join('');
   $('#mixerList').innerHTML = MIX.map(([n, v]) => `<div class="mix glass"><div class="name">${n}</div><div class="vtrack" data-vol="${n}"><i style="height:${v}%"></i></div><div class="pct">${v} %</div></div>`).join('');
+  paint();
   document.querySelectorAll('.tile').forEach((t) => t.onclick = () => {
     const label = t.querySelector('span').textContent;
-    if (label === 'Touchpad') return open('pad');
-    if (label === 'Drawing') return open('draw');
-    if (/light|LED|Mute|Record/.test(label)) t.classList.toggle('on');
+    const kind = t.dataset.home !== undefined ? HOME[t.dataset.home][3] : '';
+    if (label === 'Touchpad' || kind === 'touchpad') return open('pad');
+    if (label === 'Drawing' || kind === 'draw') return open('draw');
+    if (label === 'Presentation' || kind === 'presenter') return open('pres');
+    if (kind === 'display' || label === 'Second monitor') return toast('The tablet would now show a second PC screen');
+    if (/light|toggle/.test(kind) || (!kind && /light|LED|Mute|Record/.test(label))) {
+      t.classList.toggle('on');
+      if (t.dataset.home !== undefined) HOME[t.dataset.home][2] = t.classList.contains('on') ? 1 : 0;
+      return toast(label + (t.classList.contains('on') ? ' on' : ' off'));
+    }
     else { t.classList.add('on'); setTimeout(() => t.classList.remove('on'), 350); }
     toast(label + (/light|LED/.test(label) ? (t.classList.contains('on') ? ' on' : ' off') : ' – done on the PC'));
   });
@@ -387,13 +604,20 @@ let sx = null;
 $('#pages').addEventListener('pointerdown', (e) => { if (!e.target.closest('.vtrack')) sx = e.clientX; });
 addEventListener('pointerup', (e) => { if (sx !== null && Math.abs(e.clientX - sx) > 60) go(page + (e.clientX < sx ? 1 : -1)); sx = null; });
 
-// ---------- overlays ----------
-function open(id) { document.querySelectorAll('.over').forEach((o) => o.classList.toggle('show', o.id === id)); history.replaceState(null, '', '#' + id); }
-function close() { document.querySelectorAll('.over').forEach((o) => o.classList.remove('show')); history.replaceState(null, '', '#'); }
+// ---------- overlays and cards ----------
+function open(id) {
+  if (document.getElementById(id).classList.contains('sheet')) { document.getElementById(id).classList.add('show'); return; }
+  document.querySelectorAll('.over').forEach((o) => o.classList.toggle('show', o.id === id));
+  if (id === 'tset') renderTset();
+  history.replaceState(null, '', '#' + id);
+}
+function close() { document.querySelectorAll('.over, .sheet').forEach((o) => { if (o.id !== 'pairing' || !tour.on) o.classList.remove('show'); }); history.replaceState(null, '', '#'); }
 document.addEventListener('click', (e) => {
   const o = e.target.closest('[data-open]'); if (o) return open(o.dataset.open);
   if (e.target.closest('[data-close]')) return close();
   const t = e.target.closest('[data-toast]'); if (t) toast(t.dataset.toast);
+  const sh = e.target.closest('.sheet');
+  if (sh && e.target === sh && sh.id !== 'pairing') sh.classList.remove('show');
 });
 $('#saver').onclick = close;
 setInterval(() => { $('#saverC').style.transform = `translate(calc(-50% + ${Math.random() * 60 - 30}px), calc(-50% + ${Math.random() * 40 - 20}px))`; }, 6000);
@@ -425,18 +649,151 @@ cv.addEventListener('pointermove', (e) => { if (cur) { cur.push(stagePoint(e, cv
 addEventListener('pointerup', () => { cur = null; });
 $('#undo').onclick = () => { strokes.pop(); redraw(); };
 
-// ---------- look: color and clock font ----------
-$('#swatches').innerHTML = TINTS.map(([n, c]) => `<button title="${n}" data-tint="${c}" style="background:${c}"></button>`).join('');
-$('#swatches').onclick = (e) => {
-  const b = e.target.closest('[data-tint]'); if (!b) return;
-  document.documentElement.style.setProperty('--tint', b.dataset.tint);
-  document.querySelectorAll('#swatches button').forEach((x) => x.classList.toggle('sel', x === b));
-};
-$('#font').onchange = (e) => {
-  const [f, size, track] = e.target.value.split('|');
+// ---------- look: color and clock font, shared by the quick controls, the tablet settings and the PC window ----------
+function applyLook() {
   const r = document.documentElement.style;
+  r.setProperty('--tint', look.tint);
+  const [f, size, track] = FONTS[look.font];
   r.setProperty('--clock', `"${f}"`); r.setProperty('--clock-size', size); r.setProperty('--clock-track', track);
+  document.querySelectorAll('#swatches button').forEach((x) => x.classList.toggle('sel', x.dataset.tint === look.tint));
+  $('#font').selectedIndex = look.font;
+  // Screensaver: its own font, background and position.
+  const sf = look.saver.font < 0 ? FONTS[look.font] : FONTS[look.saver.font];
+  const st = $('#saver').style;
+  st.background = look.saver.bg === 'tint' ? `radial-gradient(circle at 20% 20%, ${look.tint}, #050505 70%)` : '#050505';
+  $('#saverTime').style.fontFamily = `"${sf[0]}"`; $('#saverTime').style.letterSpacing = sf[2];
+  $('#saverTime').style.fontSize = (sf[1] * 1.25 * look.saver.size / 100) + 'px';
+  const [v, h] = look.saver.pos.includes('-') ? look.saver.pos.split('-') : (['top', 'bottom'].includes(look.saver.pos) ? [look.saver.pos, 'center'] : ['center', look.saver.pos]);
+  const c = $('#saverC').style;
+  c.left = h === 'left' ? '64px' : h === 'right' ? 'auto' : '50%'; c.right = h === 'right' ? '64px' : 'auto';
+  c.top = v === 'top' ? '64px' : v === 'bottom' ? 'auto' : '50%'; c.bottom = v === 'bottom' ? '64px' : 'auto';
+  c.transform = `translate(${h === 'center' ? '-50%' : '0'}, ${v === 'center' ? '-50%' : '0'})`;
+  c.textAlign = h === 'center' ? 'center' : h;
+  if ($('#tset').classList.contains('show')) renderTset();
+  renderPc();
+}
+$('#swatches').innerHTML = TINTS.map(([n, c]) => `<button title="${n}" data-tint="${c}" style="background:${c}"></button>`).join('');
+$('#swatches').onclick = (e) => { const b = e.target.closest('[data-tint]'); if (b) { look.tint = b.dataset.tint; applyLook(); } };
+$('#font').onchange = (e) => { look.font = e.target.selectedIndex; applyLook(); };
+
+// The tablet's own settings screen.
+function renderTset() {
+  $('#tsetTints').innerHTML = TINTS.map(([n, c]) => `<i title="${n}" data-tt="${c}" style="background:${c}" class="${c === look.tint ? 'sel' : ''}"></i>`).join('');
+  $('#tsetFonts').innerHTML = FONTS.slice(0, 4).map(([f, size, tr], i) => `<div data-tf="${i}" class="${i === look.font ? 'sel' : ''}"><span style="font-family:'${f}';letter-spacing:${tr};font-size:${Math.round(40 * 150 / size)}px">21:14</span><small>${f}</small></div>`).join('');
+  document.querySelectorAll('#tsetSaver div').forEach((d) => d.classList.toggle('sel', (d.dataset.sv === '1') === look.saver.auto));
+  $('#tsetConn').textContent = tour.connected ? 'Connected to Desktop PC over Wi-Fi' : 'Looking for the PC on the network';
+}
+$('#tset').addEventListener('click', (e) => {
+  const t = e.target.closest('[data-tt]'); if (t) { look.tint = t.dataset.tt; applyLook(); }
+  const f = e.target.closest('[data-tf]'); if (f) { look.font = +f.dataset.tf; applyLook(); }
+  const sv = e.target.closest('[data-sv]'); if (sv) { look.saver.auto = sv.dataset.sv === '1'; renderTset(); renderPc(); }
+  const n = e.target.closest('#tsetNotify div'); if (n) document.querySelectorAll('#tsetNotify div').forEach((d) => d.classList.toggle('sel', d === n));
+});
+
+// Presentation remote: Next starts the timer.
+let slide = 1, timerOn = false, timerS = 0;
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-slide]'); if (!b) return;
+  slide = Math.max(1, slide + +b.dataset.slide);
+  if (!timerOn && +b.dataset.slide > 0) timerOn = true;
+  toast(`Slide ${slide}`);
+});
+$('#timer').onclick = () => { timerOn = !timerOn; };
+setInterval(() => {
+  if (!timerOn) return;
+  timerS++;
+  $('#timerT').textContent = Math.floor(timerS / 60) + ':' + String(timerS % 60).padStart(2, '0');
+  $('#timerS').textContent = 'tap = pause';
+}, 1000);
+
+// ---------- the PC settings window ----------
+let pcView = 'panel', pcSel = 0;
+const ICONS = ['bulb', 'led', 'mic-off', 'record', 'lock', 'camera', 'chat', 'folder', 'globe', 'gamepad', 'terminal', 'monitor', 'volume', 'moon', 'power', 'star'];
+const tour = { on: false, connected: true, pending: false };
+function renderPc() {
+  document.querySelectorAll('#pcnav a').forEach((a) => a.classList.toggle('sel', a.dataset.view === pcView));
+  $('#pcBadge').hidden = !tour.pending;
+  $('#pcConn').classList.toggle('off', !tour.connected);
+  $('#pcConnText').textContent = tour.connected ? 'Tablet connected' : tour.pending ? 'Tablet waiting for approval' : 'Tablet not connected';
+  const m = $('#pcmain');
+  if (pcView === 'panel') {
+    const t = HOME[pcSel];
+    m.innerHTML = `<h4>Panel</h4><div class="pcgrid">
+      <div class="pcard"><div class="t">Home page – click a tile</div><div class="mini">${HOME.map(([ic, lb, on], i) => `<div data-pt="${i}" class="${i === pcSel ? 'sel' : ''}">${svg(ic)}<span>${lb}</span></div>`).join('')}</div>
+        <div class="m" style="margin-top:10px">Drag tiles to move them, add pages (grid, big tiles, volume mixer) – in the real app.</div></div>
+      <div class="pcard insp"><div class="t">Tile</div>
+        <label>Name</label><input type="text" id="pName" value="${t[1]}" maxlength="18">
+        <label>Icon</label><div class="icons">${ICONS.map((ic) => `<div data-pi="${ic}" class="${ic === t[0] ? 'sel' : ''}">${svg(ic)}</div>`).join('')}</div>
+        <label>Action</label><select id="pKind">${Object.entries(ACTIONS).map(([k, v]) => `<option value="${k}" ${k === t[3] ? 'selected' : ''}>${v}</option>`).join('')}</select>
+        <div class="row" style="display:flex;gap:8px"><button class="pbtn primary" id="pTest">Test</button></div></div></div>`;
+    m.querySelectorAll('[data-pt]').forEach((d) => d.onclick = () => { pcSel = +d.dataset.pt; renderPc(); });
+    m.querySelectorAll('[data-pi]').forEach((d) => d.onclick = () => { HOME[pcSel][0] = d.dataset.pi; tiles(); renderPc(); });
+    $('#pName').oninput = (e) => { HOME[pcSel][1] = e.target.value || ' '; tiles(); m.querySelector(`[data-pt="${pcSel}"] span`).textContent = e.target.value; };
+    $('#pKind').onchange = (e) => { HOME[pcSel][3] = e.target.value; tiles(); };
+    $('#pTest').onclick = () => { const el = document.querySelector(`[data-home="${pcSel}"]`); el.click(); };
+  } else if (pcView === 'look') {
+    m.innerHTML = `<h4>Appearance</h4>
+      <div class="pcard"><div class="t">Background color</div><div class="sws">${TINTS.map(([n, c]) => `<i title="${n}" data-pc-tint="${c}" style="background:${c}" class="${c === look.tint ? 'sel' : ''}"></i>`).join('')}</div></div>
+      <div class="pcard"><div class="t">Clock font</div><div class="flist">${FONTS.map(([f, size, tr], i) => `<div data-pc-font="${i}" class="${i === look.font ? 'sel' : ''}"><span style="font-family:'${f}';letter-spacing:${tr};font-size:${Math.round(30 * 150 / size)}px">21:14</span><small>${f}</small></div>`).join('')}</div>
+        <div class="m" style="margin-top:10px">20 fonts in the app – or upload your own TTF / OTF.</div></div>`;
+    m.querySelectorAll('[data-pc-tint]').forEach((d) => d.onclick = () => { look.tint = d.dataset.pcTint; applyLook(); });
+    m.querySelectorAll('[data-pc-font]').forEach((d) => d.onclick = () => { look.font = +d.dataset.pcFont; applyLook(); });
+  } else if (pcView === 'saver') {
+    const s = look.saver;
+    m.innerHTML = `<h4>Screensaver</h4><div class="pcgrid">
+      <div class="pcard"><div class="t">Background</div>
+        <div style="display:flex;gap:6px;margin-bottom:12px">${[['black', 'Black'], ['tint', 'Background color']].map(([k, v]) => `<button class="pbtn ${s.bg === k ? 'primary' : ''}" data-sbg="${k}">${v}</button>`).join('')}<button class="pbtn" data-toast-pc="In the real app: upload your own photo">Photo…</button></div>
+        <div class="t">Font</div><select id="sFont" style="width:100%;margin-bottom:12px"><option value="-1">Same as the home screen</option>${FONTS.map(([f], i) => `<option value="${i}" ${i === s.font ? 'selected' : ''}>${f}</option>`).join('')}</select>
+        <div class="t">Size</div><input type="range" id="sSize" min="50" max="160" value="${s.size}" style="width:100%"></div>
+      <div class="pcard"><div class="t">Position</div><div class="posg">${['top-left', 'top', 'top-right', 'left', 'center', 'right', 'bottom-left', 'bottom', 'bottom-right'].map((p) => `<i data-spos="${p}" class="${p === s.pos ? 'sel' : ''}"></i>`).join('')}</div>
+        <div style="margin-top:16px"><button class="pbtn primary" id="sShow">Show it on the tablet now</button></div>
+        <div class="m" style="margin-top:10px">One touch on the tablet closes it.</div></div></div>`;
+    m.querySelectorAll('[data-sbg]').forEach((b) => b.onclick = () => { s.bg = b.dataset.sbg; applyLook(); });
+    m.querySelectorAll('[data-spos]').forEach((b) => b.onclick = () => { s.pos = b.dataset.spos; applyLook(); });
+    m.querySelectorAll('[data-toast-pc]').forEach((b) => b.onclick = () => toast(b.dataset.toastPc));
+    $('#sFont').onchange = (e) => { s.font = +e.target.value; applyLook(); };
+    $('#sSize').oninput = (e) => { s.size = +e.target.value; applyLook(); };
+    $('#sShow').onclick = () => { open('saver'); $('.device').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+  } else {
+    m.innerHTML = `<h4>Tablet</h4>
+      <div class="pcard"><div class="t">Connect the tablet</div><div class="m">The tablet finds this PC by itself on the same Wi-Fi or over a USB cable. Otherwise enter this address on the tablet:</div>
+        <div class="item"><div class="grow"><b>192.0.2.10:47801</b><small>Wi-Fi · network "Home"</small></div><button class="pbtn" data-toast-pc="Copied">Copy</button></div></div>
+      <div class="pcard"><div class="t">Waiting for approval</div>${tour.pending ? `<div class="item"><div class="grow">Galaxy Tab A<small>Wi-Fi · code <b>482913</b> – allow only if the tablet shows the same code</small></div><button class="pbtn primary glow" id="allow">Allow</button></div>` : '<div class="m">Nothing is waiting. When you open the app on a new tablet, it shows up here with a code.</div>'}</div>
+      <div class="pcard"><div class="t">Allowed tablets</div><div class="item"><div class="grow">${tour.connected || !tour.on ? 'Galaxy Tab A' : 'Huawei MediaPad'}<small>${tour.connected ? 'connected' : 'offline'}</small></div><button class="pbtn" data-toast-pc="Removed tablets must be allowed again">Remove</button></div></div>
+      <div class="pcard"><div class="t">Earlier layouts</div><div class="m">Lumen Desk keeps the last 30 versions of your pages and tiles.</div><div class="item"><div class="grow">Today 18:40<small>Home, PC, Mixer · 23 tiles</small></div><button class="pbtn" data-toast-pc="Layout restored">Restore</button></div></div>`;
+    m.querySelectorAll('[data-toast-pc]').forEach((b) => b.onclick = () => toast(b.dataset.toastPc));
+    const a = $('#allow'); if (a) a.onclick = allow;
+  }
+}
+$('#pcnav').onclick = (e) => { const a = e.target.closest('[data-view]'); if (a) { pcView = a.dataset.view; renderPc(); } };
+
+// ---------- tour: how a new tablet connects ----------
+function setPill() {
+  $('#pillText').textContent = tour.connected ? 'Desktop PC · Wi-Fi' : 'Looking for PC…';
+  $('#pillDot').style.background = tour.connected ? '#fff' : '#FF8A65';
+  $('#connStatus').textContent = tour.connected ? 'Connected to Desktop PC over Wi-Fi' : 'Looking for the PC';
+}
+function step(text) { $('#tourStep').textContent = text; }
+$('#tourBtn').onclick = () => {
+  close();
+  tour.on = true; tour.connected = false; tour.pending = false;
+  setPill(); renderPc(); go(0);
+  $('.device').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  step('1 / 3 – A new tablet opens Lumen Desk and looks for the PC on the Wi-Fi…');
+  setTimeout(() => {
+    tour.pending = true; open('pairing'); pcView = 'tablet'; renderPc();
+    step('2 / 3 – Both screens show the same code. Now press Allow in the PC window below.');
+  }, 2200);
 };
+function allow() {
+  if (!tour.pending) return;
+  tour.pending = false; tour.connected = true; tour.on = false;
+  $('#pairing').classList.remove('show');
+  setPill(); renderPc();
+  step('3 / 3 – Connected and encrypted. From now on the tablet connects by itself.');
+  toast('Tablet allowed – connected');
+  $('.device').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
 
 // A little life in the numbers.
 setInterval(() => {
@@ -447,15 +804,16 @@ setInterval(() => {
 fetch('demo/icons.json').then((r) => r.json()).then((j) => {
   icons = j;
   tiles(); paint(); player(); clock(); go(0); fit();
-  document.querySelector('#swatches [data-tint="#8A5A2B"]').classList.add('sel');
+  applyLook();
   setInterval(clock, 10000);
   // #saver, #pad, #draw, #grid, #mixer, #playing open a state directly (used for the README screenshots).
   const tint = new URLSearchParams(location.search).get('tint');
-  if (tint) document.documentElement.style.setProperty('--tint', '#' + tint);
+  if (tint) look.tint = '#' + tint;
   const font = new URLSearchParams(location.search).get('font');
-  if (font) { $('#font').selectedIndex = +font; $('#font').onchange({ target: $('#font') }); }
+  if (font) look.font = +font;
+  if (tint || font) applyLook();
   const h = location.hash.slice(1);
-  if (['saver', 'pad', 'draw'].includes(h)) open(h);
+  if (['saver', 'pad', 'draw', 'pres', 'mirror', 'apps', 'tset'].includes(h)) open(h);
   if (h === 'keyboard') { open('pad'); $('#kbBtn').click(); }
   if (h === 'grid') go(1);
   if (h === 'mixer') go(2);
