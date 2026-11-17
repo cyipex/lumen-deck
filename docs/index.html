@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lumen Desk – live demo</title>
+<meta name="description" content="Turn an old Android tablet into a free control panel for your Windows PC. Try the tablet screen right here – demo data, nothing to install.">
+<meta property="og:title" content="Lumen Desk – your old tablet as a free Stream Deck">
+<meta property="og:description" content="Clock, Spotify, per-app volume, one-tap shortcuts, touchpad and keyboard, second monitor. Free and open source.">
+<meta property="og:image" content="https://cyipex.github.io/lumen-desk/screenshots/demo-home.png">
+<link rel="icon" href="demo/favicon.svg">
+<style>
+@font-face { font-family: Inter; src: url(demo/fonts/Inter-Regular.ttf); font-weight: 400; }
+@font-face { font-family: Inter; src: url(demo/fonts/Inter-Medium.ttf); font-weight: 500; }
+@font-face { font-family: Inter; src: url(demo/fonts/Inter-SemiBold.ttf); font-weight: 600; }
+@font-face { font-family: Fraunces; src: url(demo/fonts/Fraunces-Light.ttf); }
+@font-face { font-family: "Space Grotesk"; src: url(demo/fonts/SpaceGrotesk-Light.ttf); }
+@font-face { font-family: Outfit; src: url(demo/fonts/Outfit-Thin.ttf); }
+@font-face { font-family: "Bebas Neue"; src: url(demo/fonts/BebasNeue-Regular.ttf); }
+@font-face { font-family: Anton; src: url(demo/fonts/Anton-Regular.ttf); }
+@font-face { font-family: VT323; src: url(demo/fonts/VT323-Regular.ttf); }
+@font-face { font-family: Pacifico; src: url(demo/fonts/Pacifico-Regular.ttf); }
+
+:root {
+  --ink: #050505; --white: #fff; --g0: #e6e6e6; --g1: #bdbdbd; --g2: #9a9a9a;
+  --tint: #8A5A2B; --clock: Fraunces; --clock-size: 150; --clock-track: -0.035em;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #0b0b0c; color: var(--white); font-family: Inter, system-ui, sans-serif; }
+a { color: inherit; }
+
+/* ---------- page around the tablet ---------- */
+.top { max-width: 1240px; margin: 0 auto; padding: 28px 20px 8px; display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap; }
+.top h1 { font-family: Fraunces, serif; font-weight: 300; font-size: clamp(32px, 4vw, 48px); letter-spacing: -0.03em; margin: 0; line-height: 1; }
+.top p { margin: 10px 0 0; color: var(--g1); max-width: 640px; line-height: 1.45; }
+.top .grow { flex: 1 1 420px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 14px; font-weight: 600; text-decoration: none; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.06); cursor: pointer; font: inherit; color: #fff; }
+.btn.primary { background: #fff; color: #050505; border-color: #fff; }
+.controls { max-width: 1240px; margin: 0 auto; padding: 12px 20px; display: flex; gap: 18px; flex-wrap: wrap; align-items: center; color: var(--g2); font-size: 13px; }
+.swatches { display: flex; gap: 6px; }
+.swatches button { width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+.swatches button.sel { border-color: #fff; }
+select { font: inherit; color: #fff; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.16); border-radius: 10px; padding: 6px 10px; }
+
+/* ---------- the tablet: always 1280 x 800 design points, scaled to fit ---------- */
+.frame { max-width: 1240px; margin: 0 auto 30px; padding: 0 20px; }
+.device { position: relative; width: 100%; aspect-ratio: 1280 / 800; border-radius: clamp(14px, 2.6vw, 34px); padding: clamp(6px, 1.1vw, 14px); background: #18181a; box-shadow: 0 40px 120px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.08); }
+.screen { position: relative; width: 100%; height: 100%; border-radius: clamp(8px, 1.6vw, 22px); overflow: hidden; container-type: size; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 800px; transform-origin: 0 0; background: var(--ink); user-select: none; -webkit-user-select: none; }
+.bg { position: absolute; inset: 0; overflow: hidden; }
+.bg i { position: absolute; border-radius: 50%; background: radial-gradient(circle, var(--tint) 0%, color-mix(in srgb, var(--tint) 55%, transparent) 40%, color-mix(in srgb, var(--tint) 16%, transparent) 72%, transparent 100%); transition: background 0.7s; }
+.bg i:nth-child(1) { width: 1120px; height: 1120px; left: -390px; top: -430px; opacity: 0.85; }
+.bg i:nth-child(2) { width: 1000px; height: 1000px; left: 670px; top: 210px; opacity: 0.45; }
+.bg i:nth-child(3) { width: 880px; height: 880px; left: 210px; top: 290px; opacity: 0.35; }
+.grain { position: absolute; inset: 0; opacity: 0.07; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+.glass { background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04) 40%, rgba(255,255,255,0.05)); border: 1px solid rgba(255,255,255,0.18); }
+.pages { position: absolute; inset: 0; display: flex; transition: transform 0.45s cubic-bezier(.2,.8,.2,1); }
+.page { flex: 0 0 1280px; height: 800px; padding: 24px; display: flex; gap: 18px; }
+.dots { position: absolute; bottom: 6px; left: 0; right: 0; display: flex; justify-content: center; }
+.dots button { width: 30px; height: 24px; border: 0; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.dots i { display: block; height: 6px; width: 6px; border-radius: 3px; background: rgba(255,255,255,0.28); transition: width 0.3s, background 0.3s; }
+.dots .on i { width: 18px; background: rgba(255,255,255,0.95); }
+
+/* home: clock card */
+.clockcard { flex: 1.25; border-radius: 40px; padding: 28px 20px 28px 32px; display: flex; gap: 18px; }
+.cc-left { flex: 1; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
+.greet { font-size: 18px; color: var(--g2); }
+.pill { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px; border-radius: 18px; font-size: 13px; color: var(--g1); margin-top: 10px; cursor: pointer; }
+.pill .dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; }
+.time { font-family: var(--clock); font-size: calc(var(--clock-size) * 1.15px); letter-spacing: var(--clock-track); line-height: 1.05; margin-left: -3px; white-space: nowrap; }
+.date { font-size: 23px; color: var(--g0); margin-top: 18px; }
+.weather { font-size: 16px; color: var(--g2); margin-top: 8px; display: flex; gap: 9px; align-items: center; }
+.chips { display: flex; gap: 8px; }
+.chip { height: 36px; padding: 0 12px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--g1); }
+.chip b { color: #fff; font-weight: 500; }
+.chip.warn b { color: #FFB074; }
+.dock { display: flex; flex-direction: column; gap: 10px; }
+.dock .sp { flex: 1; }
+.dk { width: 58px; height: 58px; border-radius: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s, background 0.15s; }
+.dk:active, .tile:active, .rb:active { transform: scale(0.93); }
+.dk svg { width: 26px; height: 26px; }
+
+/* home: player + tiles */
+.right { flex: 2; display: flex; flex-direction: column; gap: 18px; }
+.player { flex: 1; border-radius: 40px; padding: 26px; display: flex; gap: 26px; align-items: center; }
+.art { width: 200px; height: 200px; flex: 0 0 200px; border-radius: 28px; background: linear-gradient(135deg, #ff6a5c, #6a3dd8 55%, #0d1a3a); border: 1px solid rgba(255,255,255,0.14); position: relative; overflow: hidden; }
+.art::after { content: ""; position: absolute; width: 60%; height: 60%; left: 20%; top: 20%; border-radius: 50%; border: 2px solid rgba(255,255,255,0.35); }
+.pinfo { flex: 1; display: flex; flex-direction: column; justify-content: space-between; height: 100%; min-width: 0; }
+.src { font-size: 13px; color: var(--g2); display: flex; align-items: center; gap: 8px; }
+.src i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.3); }
+.playing .src i { background: #fff; }
+.ttl { font-size: 28px; font-weight: 600; margin-top: 6px; }
+.art2 { font-size: 17px; color: var(--g1); margin-top: 4px; }
+.bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.14); position: relative; margin-top: 6px; }
+.bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: #fff; }
+.bar b { position: absolute; top: -4px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: #fff; }
+.times { display: flex; justify-content: space-between; font-size: 13px; color: var(--g2); margin-top: 8px; }
+.ctrls { display: flex; align-items: center; gap: 10px; }
+.rb { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s; }
+.rb.big { width: 68px; height: 68px; background: #fff; }
+.rb svg { width: 21px; height: 21px; }
+.rb.big svg { width: 27px; height: 27px; }
+.vol { width: 92px; display: flex; flex-direction: column; align-items: center; gap: 12px; height: 100%; }
+.vol .pct { font-size: 20px; font-weight: 600; }
+.vtrack { flex: 1; width: 76px; border-radius: 30px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); position: relative; overflow: hidden; cursor: ns-resize; }
+.vtrack i { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(#fff, #e6e6e6); }
+.tiles { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 12px 12px; }
+.tile { border-radius: 32px; padding: 22px; position: relative; cursor: pointer; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.11); color: var(--g1); transition: transform 0.18s, background 0.25s, border-color 0.25s, color 0.25s; }
+.tile svg { width: 36px; height: 36px; }
+.tile span { position: absolute; left: 22px; bottom: 20px; font-size: 16px; font-weight: 500; }
+.tile.on { background: rgba(255,255,255,0.20); border: 2px solid rgba(255,255,255,0.92); color: #fff; transform: scale(1.03); }
+.grid { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr); gap: 14px; }
+.grid .tile { padding: 26px; }
+.grid .tile svg { width: 44px; height: 44px; }
+.grid .tile span { font-size: 19px; left: 26px; bottom: 24px; }
+.mixer { flex: 1; display: flex; gap: 18px; }
+.mix { flex: 1; border-radius: 40px; padding: 26px 0; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.mix .name { font-size: 18px; font-weight: 500; }
+.mix .pct { font-size: 15px; color: var(--g2); }
+.mix .vtrack { width: 84px; }
+
+/* overlays */
+.over { position: absolute; inset: 0; display: none; }
+.over.show { display: block; }
+.saver { background: #050505; cursor: pointer; }
+.saver .c { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; transition: transform 1.5s; }
+.saver .t { font-family: var(--clock); font-size: calc(var(--clock-size) * 1.6px); letter-spacing: var(--clock-track); line-height: 1; }
+.saver .d { font-size: 26px; color: var(--g1); margin-top: 14px; }
+.saver .w { font-size: 20px; color: var(--g2); margin-top: 4px; }
+.pad { background: var(--ink); padding: 16px; display: none; flex-direction: column; gap: 12px; }
+.pad.show { display: flex; }
+.pad .surface { flex: 1; border-radius: 36px; position: relative; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.25); font-size: 16px; text-align: center; padding: 0 60px; cursor: crosshair; }
+.pad .corner { position: absolute; top: 14px; display: flex; gap: 10px; }
+.pad .round { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.pad .round svg { width: 20px; height: 20px; }
+.kb { display: none; flex-direction: column; gap: 8px; }
+.kb.show { display: flex; }
+.kb .row { display: flex; gap: 8px; height: 62px; }
+.kb .row.f { height: 44px; }
+.key { flex: 1; border-radius: 14px; background: rgba(255,255,255,0.085); border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 500; cursor: pointer; }
+.key.w { background: rgba(255,255,255,0.045); font-size: 15px; }
+.key:active { background: rgba(255,255,255,0.24); }
+.clicks { display: flex; gap: 12px; height: 86px; }
+.clicks div { flex: 1; border-radius: 28px; display: flex; align-items: center; justify-content: center; color: var(--g2); font-size: 15px; }
+.fingers { position: absolute; width: 68px; height: 68px; margin: -34px; border-radius: 50%; background: rgba(255,255,255,0.10); pointer-events: none; display: none; }
+.draw { background: var(--ink); }
+.draw canvas { position: absolute; left: 96px; top: 16px; width: 1168px; height: 768px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.18); cursor: crosshair; }
+.draw .tools { position: absolute; left: 16px; top: 16px; width: 64px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.toast { position: absolute; left: 50%; bottom: 36px; transform: translateX(-50%); padding: 10px 20px; border-radius: 22px; background: rgba(5,5,5,0.55); font-size: 15px; font-weight: 500; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
+.toast.show { opacity: 1; }
+/* Phones held upright: the tablet screen is landscape, so suggest turning the phone. */
+.turn { display: none; max-width: 1240px; margin: 0 auto 10px; padding: 0 20px; color: var(--g1); font-size: 14px; }
+@media (max-width: 700px) and (orientation: portrait) { .turn { display: block; } .top .btn { flex: 1 1 auto; justify-content: center; } }
+/* ?shot: only the screen, for the README screenshots. */
+.shot .top, .shot .controls, .shot .note, .shot .turn { display: none !important; }
+.shot .frame { max-width: none; padding: 0; margin: 0; }
+.shot .device { padding: 0; border-radius: 0; box-shadow: none; }
+.shot .screen { border-radius: 0; }
+.note { max-width: 1240px; margin: -12px auto 40px; padding: 0 20px; color: var(--g2); font-size: 13px; }
+</style>
+</head>
+<body>
+<script>if (location.search.includes('shot')) document.body.classList.add('shot');</script>
+
+<header class="top">
+  <div class="grow">
+    <h1>Lumen Desk</h1>
+    <p>Your old Android tablet as a free control panel for your Windows PC. This is the real tablet screen, running in your browser with demo data – tap the tiles, play the song, open the touchpad, the screensaver or the drawing tablet.</p>
+  </div>
+  <a class="btn primary" href="https://github.com/cyipex/lumen-desk/releases/latest">Download for Windows</a>
+  <a class="btn" href="https://github.com/cyipex/lumen-desk">GitHub</a>
+</header>
+
+<div class="controls">
+  <span>Color</span><div class="swatches" id="swatches"></div>
+  <span>Clock font</span>
+  <select id="font">
+    <option value="Fraunces|150|-0.035em">Fraunces</option>
+    <option value="Space Grotesk|146|-0.06em">Space Grotesk</option>
+    <option value="Outfit|162|-0.02em">Outfit</option>
+    <option value="Bebas Neue|176|0.01em">Bebas Neue</option>
+    <option value="Anton|140|0em">Anton</option>
+    <option value="VT323|182|0em">VT323</option>
+    <option value="Pacifico|112|0em">Pacifico</option>
+  </select>
+  <span>– 20 fonts in the app, plus your own</span>
+</div>
+
+<p class="turn">Tip: turn your phone sideways to see the panel bigger.</p>
+<div class="frame"><div class="device"><div class="screen" id="screen"><div class="stage" id="stage">
+  <div class="bg"><i></i><i></i><i></i></div><div class="grain"></div>
+
+  <div class="pages" id="pages">
+    <!-- page 1: home -->
+    <section class="page">
+      <div class="clockcard glass">
+        <div class="cc-left">
+          <div>
+            <div class="greet" id="greet">Good evening</div>
+            <div class="pill glass" data-toast="Shows how the tablet is connected: USB cable or Wi-Fi, encrypted"><span class="dot"></span>Desktop PC · Wi-Fi <span data-i="chevron-right" style="width:13px;height:13px;display:inline-flex"></span></div>
+          </div>
+          <div>
+            <div class="time" id="time">21:14</div>
+            <div class="date" id="date"></div>
+            <div class="weather"><span data-i="cloud" style="width:19px;height:19px;display:inline-flex"></span>London · 12° · Partly cloudy</div>
+          </div>
+          <div class="chips">
+            <div class="chip glass">CPU <b id="cpu">14 %</b></div>
+            <div class="chip glass">RAM <b id="ram">48 %</b></div>
+            <div class="chip glass" id="claudeChip" data-toast="Your Claude usage limit, from Claude Code on the PC">Claude <b id="claude">34 %</b></div>
+          </div>
+        </div>
+        <div class="dock">
+          <div class="dk glass" data-i="touchpad" data-open="pad"></div>
+          <div class="dk glass" data-i="slides" data-toast="Presentation remote: big Next / Back, timer, laser pointer, volume keys switch slides"></div>
+          <div class="dk glass" data-i="pen" data-open="draw"></div>
+          <div class="dk glass" data-i="phone" data-toast="Lumen Mirror: see and control your Android phone on the tablet"></div>
+          <div class="dk glass" data-i="clock" data-open="saver"></div>
+          <div class="sp"></div>
+          <div class="dk glass" data-i="grid" data-toast="The tablet's own apps"></div>
+          <div class="dk glass" data-i="gear" data-toast="Settings: colors, clock fonts, screensaver, connection"></div>
+        </div>
+      </div>
+      <div class="right">
+        <div class="player glass" id="player">
+          <div class="art"></div>
+          <div class="pinfo">
+            <div>
+              <div class="src"><i></i><span id="srcText">Spotify · paused</span></div>
+              <div class="ttl">Midnight Drive</div>
+              <div class="art2">Neon Coast</div>
+            </div>
+            <div>
+              <div class="bar"><i id="barFill"></i><b id="barKnob"></b></div>
+              <div class="times"><span id="pos">1:12</span><span>3:48</span></div>
+            </div>
+            <div class="ctrls">
+              <div class="rb" data-i="prev" data-act="prev"></div>
+              <div class="rb big" data-i="play" id="playBtn" data-act="play"></div>
+              <div class="rb" data-i="next" data-act="next"></div>
+            </div>
+          </div>
+          <div class="vol">
+            <div class="pct" id="volPct">62 %</div>
+            <div class="vtrack" data-vol="pc"><i style="height:62%"></i></div>
+          </div>
+        </div>
+        <div class="tiles" id="tiles"></div>
+      </div>
+    </section>
+
+    <!-- page 2: shortcuts -->
+    <section class="page"><div class="grid" id="gridTiles"></div></section>
+
+    <!-- page 3: mixer -->
+    <section class="page"><div class="mixer" id="mixerList"></div></section>
+  </div>
+  <div class="dots" id="dots"></div>
+
+  <!-- screensaver -->
+  <div class="over saver" id="saver"><div class="c" id="saverC"><div class="t" id="saverTime"></div><div class="d" id="saverDate"></div><div class="w">London · 12° · Partly cloudy</div></div></div>
+
+  <!-- touchpad + keyboard -->
+  <div class="over pad" id="pad">
+    <div class="surface glass" id="surface">
+      <span id="padHint">Tap = click · 2 fingers = scroll and right click · pinch = zoom · double tap and hold = drag · 3 fingers = switch apps</span>
+      <div class="corner" style="left:14px"><div class="round glass" data-i="close" data-close="pad"></div></div>
+      <div class="corner" style="right:14px"><div class="round glass" data-i="windows" data-toast="Opens the Start menu on the PC"></div><div class="round glass" data-i="keyboard" id="kbBtn"></div></div>
+      <div class="fingers" id="finger"></div>
+    </div>
+    <div class="kb" id="kb"></div>
+    <div class="clicks" id="clicks"><div class="glass">Left click</div><div class="glass">Right click</div></div>
+  </div>
+
+  <!-- drawing tablet -->
+  <div class="over draw" id="draw">
+    <div class="tools">
+      <div class="round glass dk" data-i="close" data-close="draw" style="width:44px;height:44px;border-radius:50%"></div>
+      <div class="dk glass" data-i="undo" id="undo" style="width:58px;height:58px"></div>
+    </div>
+    <canvas id="canvas" width="1168" height="768"></canvas>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div></div></div></div>
+<p class="note">Demo data only. In the real app the tablet talks to the Lumen Desk PC app over an encrypted connection (Wi-Fi or USB cable).</p>
+
+<script>
+const TINTS = [['Graphite', '#3A3A3D'], ['Ocean', '#2F4A8A'], ['Indigo', '#3A3478'], ['Lavender', '#5E4B8B'], ['Rose', '#7A4458'],
+  ['Terracotta', '#7A3E2E'], ['Amber', '#8A5A2B'], ['Sand', '#7A6A4A'], ['Sage', '#4E6B5C'], ['Emerald', '#1F5E4E']];
+const HOME = [['bulb', 'Room light', 1], ['led', 'Desk LED', 0], ['mic-off', 'Mute mic', 0], ['record', 'Record', 0],
+  ['lock', 'Lock PC', 0], ['camera', 'Screenshot', 0], ['chat', 'Discord', 0], ['folder', 'Files', 0]];
+const GRID = [['volume', 'Volume +'], ['volume-low', 'Volume −'], ['volume-x', 'Mute PC'], ['monitor', 'Desktop'], ['terminal', 'Task Manager'], ['globe', 'Browser'],
+  ['monitor', 'Second monitor'], ['touchpad', 'Touchpad'], ['slides', 'Presentation'], ['pen', 'Drawing'], ['gamepad', 'Steam'], ['power', 'Sleep PC']];
+const MIX = [['PC', 62], ['Spotify', 70], ['Discord', 85], ['Chrome', 35], ['Game', 55]];
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const $ = (s) => document.querySelector(s);
+let icons = {};
+
+const svg = (name, stroke = 1.6) => {
+  const filled = ['play', 'pause', 'prev', 'next'].includes(name);
+  return `<svg viewBox="0 0 24 24" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"><path d="${icons[name] || ''}"/></svg>`;
+};
+const paint = (root = document) => root.querySelectorAll('[data-i]').forEach((el) => { if (!el.querySelector('svg')) el.insertAdjacentHTML('afterbegin', svg(el.dataset.i)); });
+
+// The 1280 x 800 tablet screen scaled to whatever fits.
+function fit() { const s = $('#screen'); $('#stage').style.transform = `scale(${s.clientWidth / 1280}, ${s.clientHeight / 800})`; }
+addEventListener('resize', fit);
+
+let toastTimer;
+function toast(text) { const t = $('#toast'); t.textContent = text; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600); }
+
+function clock() {
+  const d = new Date(), h = d.getHours();
+  const hm = String(h).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  $('#time').textContent = hm; $('#saverTime').textContent = hm;
+  const date = `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`;
+  $('#date').textContent = date; $('#saverDate').textContent = date;
+  $('#greet').textContent = h < 5 ? 'Good night' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : h < 22 ? 'Good evening' : 'Good night';
+}
+
+// ---------- tiles ----------
+const tileHtml = ([icon, label, on]) => `<div class="tile ${on ? 'on' : ''}" data-i="${icon}"><span>${label}</span></div>`;
+function tiles() {
+  $('#tiles').innerHTML = HOME.map(tileHtml).join('');
+  $('#gridTiles').innerHTML = GRID.map(tileHtml).join('');
+  $('#mixerList').innerHTML = MIX.map(([n, v]) => `<div class="mix glass"><div class="name">${n}</div><div class="vtrack" data-vol="${n}"><i style="height:${v}%"></i></div><div class="pct">${v} %</div></div>`).join('');
+  document.querySelectorAll('.tile').forEach((t) => t.onclick = () => {
+    const label = t.querySelector('span').textContent;
+    if (label === 'Touchpad') return open('pad');
+    if (label === 'Drawing') return open('draw');
+    if (/light|LED|Mute|Record/.test(label)) t.classList.toggle('on');
+    else { t.classList.add('on'); setTimeout(() => t.classList.remove('on'), 350); }
+    toast(label + (/light|LED/.test(label) ? (t.classList.contains('on') ? ' on' : ' off') : ' – done on the PC'));
+  });
+}
+
+// ---------- player ----------
+let playing = false, pos = 72;
+const DUR = 228;
+const fmt = (s) => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+function player() {
+  $('#player').classList.toggle('playing', playing);
+  $('#srcText').textContent = playing ? 'Spotify · playing on PC' : 'Spotify · paused';
+  $('#playBtn').innerHTML = svg(playing ? 'pause' : 'play');
+  $('#playBtn').style.color = '#050505';
+  const f = (pos / DUR) * 100;
+  $('#barFill').style.width = f + '%'; $('#barKnob').style.left = f + '%'; $('#pos').textContent = fmt(pos);
+}
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('[data-act]');
+  if (!a) return;
+  if (a.dataset.act === 'play') playing = !playing;
+  if (a.dataset.act === 'next') { pos = 0; playing = true; }
+  if (a.dataset.act === 'prev') pos = 0;
+  player();
+});
+setInterval(() => { if (playing) { pos = (pos + 1) % DUR; player(); } }, 1000);
+
+// Volume sliders: drag up and down.
+document.addEventListener('pointerdown', (e) => {
+  const tr = e.target.closest('.vtrack');
+  if (!tr) return;
+  const set = (ev) => {
+    const r = tr.getBoundingClientRect();
+    const v = Math.round(Math.max(0, Math.min(1, 1 - (ev.clientY - r.top) / r.height)) * 100);
+    tr.querySelector('i').style.height = v + '%';
+    const p = tr.dataset.vol === 'pc' ? $('#volPct') : tr.parentElement.querySelector('.pct');
+    if (p) p.textContent = v + ' %';
+  };
+  set(e);
+  const up = () => { removeEventListener('pointermove', set); removeEventListener('pointerup', up); };
+  addEventListener('pointermove', set); addEventListener('pointerup', up);
+});
+
+// ---------- pages: swipe or tap the dots ----------
+let page = 0;
+function go(i) {
+  page = Math.max(0, Math.min(2, i));
+  $('#pages').style.transform = `translateX(${-1280 * page}px)`;
+  $('#dots').innerHTML = [0, 1, 2].map((k) => `<button class="${k === page ? 'on' : ''}" data-page="${k}"><i></i></button>`).join('');
+}
+$('#dots').onclick = (e) => { const b = e.target.closest('[data-page]'); if (b) go(+b.dataset.page); };
+let sx = null;
+$('#pages').addEventListener('pointerdown', (e) => { if (!e.target.closest('.vtrack')) sx = e.clientX; });
+addEventListener('pointerup', (e) => { if (sx !== null && Math.abs(e.clientX - sx) > 60) go(page + (e.clientX < sx ? 1 : -1)); sx = null; });
+
+// ---------- overlays ----------
+function open(id) { document.querySelectorAll('.over').forEach((o) => o.classList.toggle('show', o.id === id)); history.replaceState(null, '', '#' + id); }
+function close() { document.querySelectorAll('.over').forEach((o) => o.classList.remove('show')); history.replaceState(null, '', '#'); }
+document.addEventListener('click', (e) => {
+  const o = e.target.closest('[data-open]'); if (o) return open(o.dataset.open);
+  if (e.target.closest('[data-close]')) return close();
+  const t = e.target.closest('[data-toast]'); if (t) toast(t.dataset.toast);
+});
+$('#saver').onclick = close;
+setInterval(() => { $('#saverC').style.transform = `translate(calc(-50% + ${Math.random() * 60 - 30}px), calc(-50% + ${Math.random() * 40 - 20}px))`; }, 6000);
+
+// Touchpad: a light dot follows the finger; the keyboard opens from the corner.
+const KEYS = [['Esc', ...Array.from({ length: 12 }, (_, i) => 'F' + (i + 1)), 'Del'], ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '⌫'],
+  ['Tab', ...'qwertyuiop', '[', ']', '\\'], ['Caps', ...'asdfghjkl', ';', "'", 'Enter'], ['Shift', ...'zxcvbnm', ',', '.', '/', 'Shift', '↑'], ['Ctrl', 'Win', 'Alt', ' ', 'Ctrl', '←', '↓', '→']];
+$('#kb').innerHTML = KEYS.map((r, i) => `<div class="row ${i === 0 ? 'f' : ''}">${r.map((k) => `<div class="key ${k.length > 1 ? 'w' : ''}" style="flex:${{ '⌫': 2, Tab: 1.5, '\\': 1.5, Caps: 1.75, Enter: 2.25, Shift: 2, ' ': 6.5, Ctrl: 1.4, Esc: 1.5, Del: 1.5 }[k] || 1}">${k === ' ' ? '' : k}</div>`).join('')}</div>`).join('');
+$('#kbBtn').onclick = () => {
+  const on = !$('#kb').classList.contains('show');
+  $('#kb').classList.toggle('show', on); $('#clicks').style.display = on ? 'none' : 'flex';
+  $('#padHint').textContent = on ? 'Touchpad' : 'Tap = click · 2 fingers = scroll and right click · pinch = zoom · double tap and hold = drag · 3 fingers = switch apps';
+};
+$('#kb').onclick = (e) => { const k = e.target.closest('.key'); if (k) toast('Typed on the PC: ' + (k.textContent || 'space')); };
+const stagePoint = (e, el) => { const r = el.getBoundingClientRect(); return [(e.clientX - r.left) * el.offsetWidth / r.width, (e.clientY - r.top) * el.offsetHeight / r.height]; };
+$('#surface').addEventListener('pointermove', (e) => { if (!e.buttons) return; const [x, y] = stagePoint(e, $('#surface')); const f = $('#finger'); f.style.display = 'block'; f.style.left = x + 'px'; f.style.top = y + 'px'; });
+$('#surface').addEventListener('pointerup', () => { $('#finger').style.display = 'none'; });
+
+// Drawing tablet: the canvas is the whole PC screen.
+const cv = $('#canvas'), cx = cv.getContext('2d');
+let strokes = [], cur = null;
+const redraw = () => {
+  cx.clearRect(0, 0, cv.width, cv.height);
+  cx.lineWidth = 4; cx.lineCap = 'round'; cx.lineJoin = 'round'; cx.strokeStyle = '#fff';
+  for (const s of strokes) { cx.beginPath(); s.forEach(([x, y], i) => i ? cx.lineTo(x, y) : cx.moveTo(x, y)); cx.stroke(); }
+};
+cv.addEventListener('pointerdown', (e) => { cur = [stagePoint(e, cv)]; strokes.push(cur); });
+cv.addEventListener('pointermove', (e) => { if (cur) { cur.push(stagePoint(e, cv)); redraw(); } });
+addEventListener('pointerup', () => { cur = null; });
+$('#undo').onclick = () => { strokes.pop(); redraw(); };
+
+// ---------- look: color and clock font ----------
+$('#swatches').innerHTML = TINTS.map(([n, c]) => `<button title="${n}" data-tint="${c}" style="background:${c}"></button>`).join('');
+$('#swatches').onclick = (e) => {
+  const b = e.target.closest('[data-tint]'); if (!b) return;
+  document.documentElement.style.setProperty('--tint', b.dataset.tint);
+  document.querySelectorAll('#swatches button').forEach((x) => x.classList.toggle('sel', x === b));
+};
+$('#font').onchange = (e) => {
+  const [f, size, track] = e.target.value.split('|');
+  const r = document.documentElement.style;
+  r.setProperty('--clock', `"${f}"`); r.setProperty('--clock-size', size); r.setProperty('--clock-track', track);
+};
+
+// A little life in the numbers.
+setInterval(() => {
+  $('#cpu').textContent = Math.round(8 + Math.random() * 22) + ' %';
+  $('#ram').textContent = Math.round(46 + Math.random() * 4) + ' %';
+}, 2500);
+
+fetch('demo/icons.json').then((r) => r.json()).then((j) => {
+  icons = j;
+  tiles(); paint(); player(); clock(); go(0); fit();
+  document.querySelector('#swatches [data-tint="#8A5A2B"]').classList.add('sel');
+  setInterval(clock, 10000);
+  // #saver, #pad, #draw, #grid, #mixer, #playing open a state directly (used for the README screenshots).
+  const tint = new URLSearchParams(location.search).get('tint');
+  if (tint) document.documentElement.style.setProperty('--tint', '#' + tint);
+  const font = new URLSearchParams(location.search).get('font');
+  if (font) { $('#font').selectedIndex = +font; $('#font').onchange({ target: $('#font') }); }
+  const h = location.hash.slice(1);
+  if (['saver', 'pad', 'draw'].includes(h)) open(h);
+  if (h === 'keyboard') { open('pad'); $('#kbBtn').click(); }
+  if (h === 'grid') go(1);
+  if (h === 'mixer') go(2);
+  if (h === 'playing') { playing = true; player(); }
+});
+</script>
+</body>
+</html>

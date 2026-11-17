@@ -201,7 +201,9 @@ fun App(link: Link) {
     }
 
     BoxWithConstraints(Modifier.fillMaxSize().background(Ink)) {
-        CompositionLocalProvider(LocalScale provides Scale(maxWidth.value / 1280f, 1f)) {
+        // The design is 1280 × 800. Other screens (phones, 16:9 or 4:3 tablets) scale by the side that runs out
+        // first, so nothing is cut off; the extra width or height goes to the cards, which stretch.
+        CompositionLocalProvider(LocalScale provides Scale(minOf(maxWidth.value / 1280f, maxHeight.value / 800f), 1f)) {
             val tint by animateColorAsState(Tints[cfg?.theme?.tint] ?: Tints.getValue("Emerald"), tween(700), label = "tint")
             Background(tint)
 

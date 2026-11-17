@@ -1,0 +1,19 @@
+name: Feature request
+description: An idea for Lumen Desk
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like?
+      description: Describe the feature and what you would use it for.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why does it matter to you?
+  - type: textarea
+    id: extra
+    attributes:
+      label: Sketches, screenshots or examples (optional)

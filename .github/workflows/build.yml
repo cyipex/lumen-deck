@@ -1,0 +1,63 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pc:
+    name: PC server (tests)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        working-directory: pc
+        run: npm ci
+      - name: Syntax check
+        working-directory: pc
+        shell: bash
+        run: for f in *.js lib/*.js ui/*.js installer/*.js test/*.js; do node --check "$f"; done
+      - name: Security and protocol tests
+        working-directory: pc
+        run: npm test
+
+  tablet:
+    name: Tablet app
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Build
+        working-directory: tablet
+        run: ./gradlew.bat assembleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lumen-desk-tablet-apk
+          path: tablet/app/build/outputs/apk/release/app-release.apk
+
+  phone:
+    name: Lumen Mirror (phone app)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Build
+        working-directory: phone
+        run: ./gradlew.bat assembleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lumen-mirror-phone-apk
+          path: phone/app/build/outputs/apk/release/app-release.apk
