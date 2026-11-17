@@ -1,4 +1,4 @@
-// Builds the Windows installer: LumenDeskSetup.exe
+// Builds the Windows installer: LumenDeckSetup.exe
 //   1. bundles the server into one JS file (esbuild)
 //   2. packs it with Node.js into LumenDesk.exe (Node single executable application)
 //   3. builds the installer with Inno Setup (ISCC.exe)
@@ -45,7 +45,7 @@ fs.copyFileSync(process.execPath, EXE);
 const rcedit = require('rcedit');
 const rceditDone = (rcedit.rcedit || rcedit)(EXE, {
   icon: path.join(PC, 'icon.ico'),
-  'version-string': { ProductName: 'Lumen Desk', FileDescription: 'Lumen Desk', CompanyName: 'cyipex', LegalCopyright: 'MIT License' },
+  'version-string': { ProductName: 'Lumen Deck', FileDescription: 'Lumen Deck', CompanyName: 'cyipex', LegalCopyright: 'MIT License' },
   'file-version': VERSION,
   'product-version': VERSION
 });
@@ -75,7 +75,7 @@ Promise.resolve(rceditDone).then(() => {
     path.join(process.env.ProgramFiles || '', 'Inno Setup 6', 'ISCC.exe')].find((p) => p && fs.existsSync(p));
   if (!iscc) throw new Error('Inno Setup 6 not found. Install it from https://jrsoftware.org/isdl.php or set ISCC.');
   execFileSync(iscc, ['/Q', `/DAppVersion=${VERSION}`, path.join(__dirname, 'LumenDesk.iss')], { stdio: 'inherit' });
-  console.log('\nDone: ' + path.join(OUT, 'LumenDeskSetup.exe'));
+  console.log('\nDone: ' + path.join(OUT, 'LumenDeckSetup.exe'));
 }).catch((e) => { console.error(e); process.exit(1); });
 
 // The tablet app goes along, so the PC can update the tablet over Wi-Fi. Its version is read from the APK

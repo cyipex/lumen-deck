@@ -208,7 +208,7 @@ fun ClaudeCard(usage: ClaudeUsage?, onClose: () -> Unit) {
         if (l == null || (l.five == null && l.week == null)) {
             Text(
                 "Nothing yet. The numbers come from Claude Code on the PC: they appear after you use Claude Code in a terminal " +
-                    "(its status line passes them to Lumen Desk). The Claude desktop app does not send them."
+                    "(its status line passes them to Lumen Deck). The Claude desktop app does not send them."
             )
         } else {
             l.five?.let { UsageBar("Current 5-hour window", it, tick) }
@@ -275,7 +275,7 @@ fun ConnectionCard(link: Link, status: Status, onSettings: () -> Unit, onClose: 
         Fact("This tablet", listOfNotNull(ip, ssid?.let { "Wi-Fi \"$it\"" }).joinToString(" · ").ifEmpty { "Not on Wi-Fi" })
         Text(
             "The PC must be on the same Wi-Fi, or connected by USB cable. The PC's addresses are shown on the PC: " +
-                "Lumen Desk settings → Tablet → Connect the tablet."
+                "Lumen Deck settings → Tablet → Connect the tablet."
         )
         Row(horizontalArrangement = Arrangement.spacedBy(10.u)) {
             TextButton("Try again", { link.retry() }, primary = true)

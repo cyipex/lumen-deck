@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Questions and ideas
-    url: https://github.com/cyipex/lumen-desk/discussions
+    url: https://github.com/cyipex/lumen-deck/discussions
     about: Ask how to set something up or share your desk setup.
   - name: Security problem
-    url: https://github.com/cyipex/lumen-desk/security/advisories/new
+    url: https://github.com/cyipex/lumen-deck/security/advisories/new
     about: Report security problems privately, not in a public issue.

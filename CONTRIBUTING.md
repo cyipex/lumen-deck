@@ -1,4 +1,4 @@
-# Contributing to Lumen Desk
+# Contributing to Lumen Deck
 
 Thanks for wanting to help! Bug reports, ideas, translations and code are all welcome.
 
@@ -50,6 +50,6 @@ The CI builds the tablet app and runs the PC tests on every pull request.
 ## Ground rules
 
 - **Security first.** The tablet connection is encrypted (`pc/lib/secure.js` and `tablet/.../Secure.kt` must stay compatible). Never add a plain-text path or trust a tablet by its id alone. Report security problems privately – see [SECURITY.md](SECURITY.md).
-- **Privacy.** No telemetry, no accounts, no cloud. Lumen Desk only talks to the user's own PC and the services they connect (Spotify, weather).
+- **Privacy.** No telemetry, no accounts, no cloud. Lumen Deck only talks to the user's own PC and the services they connect (Spotify, weather).
 - **No personal data in the repo** – no IP addresses, computer names or tokens in code, tests or screenshots.
 - Be kind. Everyone was new once.

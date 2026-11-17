@@ -1,41 +1,41 @@
-<h1 align="center">Lumen Desk</h1>
+<h1 align="center">Lumen Deck</h1>
 
-<p align="center"><b>Turn your old Android tablet or phone into a free control panel – and home screen – for your Windows PC.</b></p>
+<p align="center"><b>Old screens, new light.</b><br>Lumen Deck turns the old Android tablet or phone in your drawer into a free Stream Deck, touchpad and second monitor for your Windows PC.</p>
 
 <p align="center">
-  <a href="https://cyipex.github.io/lumen-desk/"><b>Try the live demo</b></a> ·
-  <a href="https://github.com/cyipex/lumen-desk/releases/latest"><b>Download</b></a> ·
+  <a href="https://cyipex.github.io/lumen-deck/"><b>Try the live demo</b></a> ·
+  <a href="https://github.com/cyipex/lumen-deck/releases/latest"><b>Download</b></a> ·
   <a href="#install-in-one-command"><b>Install</b></a> ·
   <a href="#everything-it-can-do"><b>All features</b></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/cyipex/lumen-desk/actions/workflows/build.yml"><img src="https://github.com/cyipex/lumen-desk/actions/workflows/build.yml/badge.svg" alt="Build"></a>
-  <a href="https://github.com/cyipex/lumen-desk/releases/latest"><img src="https://img.shields.io/github/v/release/cyipex/lumen-desk?label=release" alt="Latest release"></a>
+  <a href="https://github.com/cyipex/lumen-deck/actions/workflows/build.yml"><img src="https://github.com/cyipex/lumen-deck/actions/workflows/build.yml/badge.svg" alt="Build"></a>
+  <a href="https://github.com/cyipex/lumen-deck/releases/latest"><img src="https://img.shields.io/github/v/release/cyipex/lumen-deck?label=release" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/Windows-10%20%C2%B7%2011-0078d4" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/Android-7%2B-3ddc84" alt="Android 7+">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
 </p>
 
-<p align="center"><a href="https://cyipex.github.io/lumen-desk/"><img src="docs/screenshots/demo.gif" width="900" alt="Lumen Desk on a tablet or phone: home screen, shortcuts, touchpad with keyboard, volume mixer and clock screensaver"></a><br>
-<sub>The screen with demo data. <a href="https://cyipex.github.io/lumen-desk/">Try it in your browser</a> – no install.</sub></p>
+<p align="center"><a href="https://cyipex.github.io/lumen-deck/"><img src="docs/screenshots/demo.gif" width="900" alt="Lumen Deck on a tablet or phone: home screen, shortcuts, touchpad with keyboard, volume mixer and clock screensaver"></a><br>
+<sub>The screen with demo data. <a href="https://cyipex.github.io/lumen-deck/">Try it in your browser</a> – no install.</sub></p>
 
-Lumen Desk is a small Windows app plus an Android app for a **tablet or phone**. The device becomes a **Stream-Deck-style panel**: a big clock, Spotify, the volume of every app, one-tap shortcuts, a touchpad and keyboard, a drawing tablet, a presentation remote – or a **second monitor**. It can replace the device's **home screen**, so it always comes back to the panel. Free, open source, no account, no cloud.
+Lumen Deck is a small Windows app plus an Android app for a **tablet or phone**. The device becomes a **Stream-Deck-style panel**: a big clock, Spotify, the volume of every app, one-tap shortcuts, a touchpad and keyboard, a drawing tablet, a presentation remote – or a **second monitor**. It can replace the device's **home screen**, so it always comes back to the panel. Free, open source, no account, no cloud.
 
 ## Install in one command
 
 On the PC, open **PowerShell** and paste:
 
 ```powershell
-irm https://raw.githubusercontent.com/cyipex/lumen-desk/main/get.ps1 | iex
+irm https://raw.githubusercontent.com/cyipex/lumen-deck/main/get.ps1 | iex
 ```
 
-It downloads the latest installer from this repo's [Releases](https://github.com/cyipex/lumen-desk/releases/latest), checks its SHA-256 and starts it. Then on the tablet or phone open
-**[github.com/cyipex/lumen-desk/releases/latest/download/lumen-desk.apk](https://github.com/cyipex/lumen-desk/releases/latest/download/lumen-desk.apk)**, install it, and allow it on the PC when both show the same 6-digit code. That's it – [step by step below](#set-it-up-step-by-step).
+It downloads the latest installer from this repo's [Releases](https://github.com/cyipex/lumen-deck/releases/latest), checks its SHA-256 and starts it. Then on the tablet or phone open
+**[github.com/cyipex/lumen-deck/releases/latest/download/lumen-deck.apk](https://github.com/cyipex/lumen-deck/releases/latest/download/lumen-deck.apk)**, install it, and allow it on the PC when both show the same 6-digit code. That's it – [step by step below](#set-it-up-step-by-step).
 
-## Why Lumen Desk?
+## Why Lumen Deck?
 
-| | Lumen Desk | A Stream Deck |
+| | Lumen Deck | A Stream Deck |
 |---|---|---|
 | Price | **Free** – uses the old tablet or phone in your drawer | from about €150 |
 | Screen | the whole touch screen of a tablet or phone: clock, Spotify, mixer, any layout | 15 small keys |
@@ -62,10 +62,10 @@ It downloads the latest installer from this repo's [Releases](https://github.com
 - 🖥️ **Second monitor** – the tablet becomes an extra screen for the PC, with touch. The virtual screen switches itself off while the tablet is not showing it, so the mouse never gets lost on it.
 
 **The tablet or phone itself**
-- 🏠 **Home screen (launcher)** – set Lumen Desk as the device's launcher: after power-on or Home it always goes straight back to the panel, with no app drawer in the way. The device's own apps are one tap away.
+- 🏠 **Home screen (launcher)** – set Lumen Deck as the device's launcher: after power-on or Home it always goes straight back to the panel, with no app drawer in the way. The device's own apps are one tap away.
 - 🌙 **Clock screensaver** after 2 minutes or from its button – your photo, font, position, size and color, set on the PC; one touch closes it without pressing anything underneath.
 - 🔋 Battery saving: the screen dims when nobody touches it.
-- 📐 Fits any screen: 10″ tablets, 16:9 and 4:3 tablets, and phones held sideways.
+- 📱 **Phones too** – a phone gets its own layout, upright or sideways (clock and player, then the tiles); the touchpad, second monitor and other tools turn it sideways by themselves. Tablets of any shape (16:9, 4:3) fit as well.
 - ⬆️ **Updates over Wi-Fi** – the PC offers new versions of the app; no cable needed.
 
 **Your style**
@@ -108,19 +108,19 @@ It downloads the latest installer from this repo's [Releases](https://github.com
 > Below it says *tablet* – a **phone** works exactly the same way (hold it sideways).
 
 ### Step 1 – On your PC
-Use the [one command](#install-in-one-command) above, or download **`LumenDeskSetup.exe`** from the [Releases](../../releases) page and run it (**Next → Install → Finish**).
+Use the [one command](#install-in-one-command) above, or download **`LumenDeckSetup.exe`** from the [Releases](../../releases) page and run it (**Next → Install → Finish**).
 
-Lumen Desk runs in the background, starts with Windows, and the **Lumen Desk** icon on your desktop opens the settings. Uninstall it any time in *Windows Settings → Apps*.
+Lumen Deck runs in the background, starts with Windows, and the **Lumen Deck** icon on your desktop opens the settings. Uninstall it any time in *Windows Settings → Apps*.
 
 > **"Windows protected your PC"?** The installer is not code-signed (that costs money for a free project), so Windows warns about it the first time. Click **More info → Run anyway**.
 
 ### Step 2 – On your tablet or phone
-1. Download **`lumen-desk.apk`** from the [Releases](../../releases) page – open the link directly on the device.
+1. Download **`lumen-deck.apk`** from the [Releases](../../releases) page – open the link directly on the device.
 2. Open the file to install it. If Android asks, allow installing apps from this source.
-3. Open **Lumen Desk** on the tablet. It finds your PC by itself.
+3. Open **Lumen Deck** on the tablet. It finds your PC by itself.
 
 ### Step 3 – Allow the tablet
-The tablet shows a 6-digit code. On the PC, open the **Lumen Desk** settings → **Tablet**, check that the same code is shown there and click **Allow**. You only need to do this once.
+The tablet shows a 6-digit code. On the PC, open the **Lumen Deck** settings → **Tablet**, check that the same code is shown there and click **Allow**. You only need to do this once.
 
 Done! 🎉 Now make it yours: in the settings window click a tile to change what it does, drag tiles around, add pages, or pick a color under **Appearance** and style the clock under **Screensaver**.
 
@@ -133,7 +133,7 @@ Done! 🎉 Now make it yours: in the settings window click a tile to change what
 <details>
 <summary><b>Spotify</b> – control music and browse your library</summary>
 
-1. In the Lumen Desk settings on the PC, open **Spotify**.
+1. In the Lumen Deck settings on the PC, open **Spotify**.
 2. Follow the three steps shown there: create a free app at [developer.spotify.com](https://developer.spotify.com/dashboard), paste the redirect address it shows, tick **Web API**, and copy the **Client ID** back.
 3. Click **Log in to Spotify**.
 
@@ -144,7 +144,7 @@ Without this, the play / next / previous buttons still work (as media keys).
 <summary><b>Smart lights</b> (Yeelight)</summary>
 
 1. In the Yeelight app, open each bulb → Settings → turn on **LAN Control**.
-2. In the Lumen Desk settings: **Lights** → **Search for bulbs**.
+2. In the Lumen Deck settings: **Lights** → **Search for bulbs**.
 3. Click a tile, set *Action* to **Light** and pick the bulb.
 </details>
 
@@ -152,9 +152,9 @@ Without this, the play / next / previous buttons still work (as media keys).
 <summary><b>Second monitor</b> – use the tablet as an extra screen</summary>
 
 1. Install the free [Virtual Display Driver](https://github.com/VirtualDrivers/Virtual-Display-Driver/releases) (*VDD.Control* → **Install Driver**). It adds a virtual monitor to Windows.
-2. In the Lumen Desk settings open **Tablet → Extras** and click **Install** next to *Second monitor* (it downloads ffmpeg for you).
+2. In the Lumen Deck settings open **Tablet → Extras** and click **Install** next to *Second monitor* (it downloads ffmpeg for you).
 3. Press **Win + P** → **Extend**. In *Settings → Display*, set the new monitor to your tablet's resolution (e.g. 1280 × 800).
-4. In the Lumen Desk settings, add a tile with the action **Second monitor**.
+4. In the Lumen Deck settings, add a tile with the action **Second monitor**.
 
 On the tablet: tap = click, drag = drag, hold = right click, two fingers = scroll, **three-finger tap = back** to the panel.
 </details>
@@ -163,8 +163,8 @@ On the tablet: tap = click, drag = drag, hold = right click, two fingers = scrol
 <summary><b>USB cable</b> – faster and steadier than Wi-Fi, and the tablet charges</summary>
 
 1. On the tablet, enable **Developer options** (tap *Build number* 7× in *Settings → About tablet*) and turn on **USB debugging**.
-2. In the Lumen Desk settings open **Tablet → Extras** and click **Install** next to *USB cable* (it downloads Google's adb tool for you).
-3. Plug the tablet in and accept the *Allow USB debugging* prompt. Lumen Desk switches to the cable by itself.
+2. In the Lumen Deck settings open **Tablet → Extras** and click **Install** next to *USB cable* (it downloads Google's adb tool for you).
+3. Plug the tablet in and accept the *Allow USB debugging* prompt. Lumen Deck switches to the cable by itself.
 </details>
 
 <details>
@@ -173,7 +173,7 @@ On the tablet: tap = click, drag = drag, hold = right click, two fingers = scrol
 The installer can't change Claude Code's settings for you. Add this to `%USERPROFILE%\.claude\settings.json`:
 
 ```json
-"statusLine": { "type": "command", "command": "\"C:/Program Files/Lumen Desk/LumenDesk.exe\" --claude-status" }
+"statusLine": { "type": "command", "command": "\"C:/Program Files/Lumen Deck/LumenDesk.exe\" --claude-status" }
 ```
 
 The numbers come from Claude Code's status line, so they update while you use `claude` in a terminal. Nothing is fetched from the internet and no login is touched.
@@ -185,9 +185,9 @@ The numbers come from Claude Code's status line, so they update while you use `c
 
 | Problem | Try this |
 |---|---|
-| The tablet keeps *Looking for PC…* | Make sure both are on the same Wi-Fi and Lumen Desk runs on the PC. Tap the connection pill on the tablet for details, or enter the address shown in the PC settings → **Tablet → Connect the tablet**. School, hotel and café Wi-Fi often block devices from seeing each other – use the USB cable there. |
+| The tablet keeps *Looking for PC…* | Make sure both are on the same Wi-Fi and Lumen Deck runs on the PC. Tap the connection pill on the tablet for details, or enter the address shown in the PC settings → **Tablet → Connect the tablet**. School, hotel and café Wi-Fi often block devices from seeing each other – use the USB cable there. |
 | *The PC does not accept this tablet* | The tablet was paired with another PC or removed on this one. Tap **Pair again** and allow it on the PC. |
-| Spotify shows nothing | Press Play on the tablet – Lumen Desk starts Spotify on the PC. |
+| Spotify shows nothing | Press Play on the tablet – Lumen Deck starts Spotify on the PC. |
 | Some playlists show no songs | Spotify only lets apps list songs of playlists *you* created; others can still be played with **Play** / **Shuffle**. |
 | Second monitor is black | Check that Windows shows two displays (Win + P → Extend) and that *Second monitor* shows **Installed** in **Tablet → Extras**. |
 | My layout looks reset | PC settings → **Tablet → Earlier layouts** → **Restore**. |
@@ -199,7 +199,7 @@ The numbers come from Claude Code's status line, so they update while you use `c
 
 Using **Claude Code**, **Codex** or a similar coding agent? Open this folder and say:
 
-> Install Lumen Desk on my PC and tablet by following AGENTS.md.
+> Install Lumen Deck on my PC and tablet by following AGENTS.md.
 
 It will walk you through every step and ask before doing anything important.
 
@@ -212,7 +212,7 @@ Ideas, bug reports, translations and code are welcome – see [CONTRIBUTING.md](
 ## For developers
 
 - `pc/` – Windows server (Node.js 22+, no build step). `run.js` supervises `server.js`; libraries in `lib/`, settings UI in `ui/`, tests in `test/` (`npm test`).
-- `pc/installer/` – builds `LumenDeskSetup.exe` (`npm run installer`): the server is bundled with esbuild, packed with Node.js into one exe (Node single executable application) and wrapped with [Inno Setup](https://jrsoftware.org/isinfo.php). It also includes the tablet app, which the PC offers to tablets as an update. User data lives in `%APPDATA%\Lumen Desk`.
+- `pc/installer/` – builds `LumenDeckSetup.exe` (`npm run installer`): the server is bundled with esbuild, packed with Node.js into one exe (Node single executable application) and wrapped with [Inno Setup](https://jrsoftware.org/isinfo.php). It also includes the tablet app, which the PC offers to tablets as an update. User data lives in `%APPDATA%\Lumen Desk`.
 - `tablet/` – Android app (Kotlin, Jetpack Compose, Android 7.0+). Build with `./gradlew assembleRelease` (JDK 17, Android SDK 34).
 - `shared/` – icons and clock fonts used by both. `docs/` – the live demo and screenshots (GitHub Pages).
 

@@ -1,4 +1,4 @@
-# Creates the Lumen Desk desktop icon and starts the server with Windows.
+# Creates the Lumen Deck desktop icon and starts the server with Windows.
 # Run: right-click -> Run with PowerShell (or: powershell -ExecutionPolicy Bypass -File install.ps1)
 $dir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $vbs = Join-Path $dir 'Lumen Desk.vbs'
@@ -13,7 +13,7 @@ function New-Link($path, $arguments) {
     $l.Save()
 }
 
-New-Link (Join-Path ([Environment]::GetFolderPath('Desktop')) 'Lumen Desk.lnk') ''
-New-Link (Join-Path ([Environment]::GetFolderPath('Startup')) 'Lumen Desk server.lnk') '/server'
+New-Link (Join-Path ([Environment]::GetFolderPath('Desktop')) 'Lumen Deck.lnk') ''
+New-Link (Join-Path ([Environment]::GetFolderPath('Startup')) 'Lumen Deck server.lnk') '/server'
 Write-Host 'Done: desktop icon + start with Windows.'
-Write-Host 'To remove: delete "Lumen Desk server" in the shell:startup folder.'
+Write-Host 'To remove: delete "Lumen Deck server" in the shell:startup folder.'

@@ -299,7 +299,7 @@ fun LauncherSettings(link: Link, cfg: PanelConfig?, status: Status, tint: Color,
                     Choice("Show", cfg?.notify != false, connected, Modifier.weight(1f)) { link.setting(listOf("notify", "enabled"), true) }
                     Choice("Off", cfg?.notify == false, connected, Modifier.weight(1f)) { link.setting(listOf("notify", "enabled"), false) }
                 }
-                T("Tiles, macros and pages are edited in Lumen Desk on the PC.", 14.us, Grey2)
+                T("Tiles, macros and pages are edited in Lumen Deck on the PC.", 14.us, Grey2)
             }
 
             // ---- connection and launcher ----
@@ -336,7 +336,7 @@ fun LauncherSettings(link: Link, cfg: PanelConfig?, status: Status, tint: Color,
                 }
                 Column(Modifier.fillMaxWidth().weight(1f).glass(RoundedCornerShape(40.u)).padding(28.u), verticalArrangement = Arrangement.spacedBy(12.u)) {
                     T("Launcher", 22.us, weight = FontWeight.SemiBold)
-                    T(if (isDefault) "Lumen Desk is the default home screen." else "Another launcher is the default home screen.", 15.us, Grey1)
+                    T(if (isDefault) "Lumen Deck is the default home screen." else "Another launcher is the default home screen.", 15.us, Grey1)
                     Spacer(Modifier.weight(1f))
                     WideButton("Set as default launcher", "home", primary = !isDefault) {
                         openHomeSettings(context)

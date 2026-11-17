@@ -1,7 +1,7 @@
 @echo off
-rem Lumen Desk – one-click setup: installs the server, adds a desktop icon, starts it with Windows and opens the settings.
+rem Lumen Deck – one-click setup: installs the server, adds a desktop icon, starts it with Windows and opens the settings.
 cd /d "%~dp0"
-title Lumen Desk setup
+title Lumen Deck setup
 
 where node >nul 2>nul
 if errorlevel 1 (
@@ -14,7 +14,7 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo Installing Lumen Desk...
+echo Installing Lumen Deck...
 call npm install --no-audit --no-fund
 if errorlevel 1 (
   echo.
@@ -27,7 +27,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0install.ps1"
 start "" wscript.exe "%~dp0Lumen Desk.vbs"
 
 echo.
-echo  Done! Lumen Desk is running and will start with Windows.
+echo  Done! Lumen Deck is running and will start with Windows.
 echo  The settings window opens now. Next: install the app on your tablet.
 echo.
 pause

@@ -1,6 +1,6 @@
 # Instructions for AI coding agents
 
-This file tells an agent (Claude Code, Codex, …) how to install and work on **Lumen Desk**. Read `README.md` first for what the project is.
+This file tells an agent (Claude Code, Codex, …) how to install and work on **Lumen Deck**. Read `README.md` first for what the project is.
 
 ## Repository layout
 - `pc/` – Windows server (Node.js, no build step). Entry: `run.js` (supervisor) → `server.js`. Libraries in `lib/`, settings UI in `ui/`.
@@ -9,7 +9,7 @@ This file tells an agent (Claude Code, Codex, …) how to install and work on **
 
 ## Installing for a user
 
-The easy way for most users: `LumenDeskSetup.exe` from the GitHub Releases (PC) + `lumen-desk.apk` (tablet). Use the steps below when installing from source.
+The easy way for most users: `LumenDeckSetup.exe` from the GitHub Releases (PC) + `lumen-deck.apk` (tablet or phone). Use the steps below when installing from source.
 
 Do the steps in order, check each one before moving on, and tell the user what you are doing.
 

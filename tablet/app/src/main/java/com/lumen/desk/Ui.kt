@@ -80,6 +80,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -200,20 +201,46 @@ fun App(link: Link) {
     }
 
     BoxWithConstraints(Modifier.fillMaxSize().background(Ink)) {
-        // The design is 1280 × 800. Other screens (phones, 16:9 or 4:3 tablets) scale by the side that runs out
-        // first, so nothing is cut off; the extra width or height goes to the cards, which stretch.
-        CompositionLocalProvider(LocalScale provides Scale(minOf(maxWidth.value / 1280f, maxHeight.value / 800f), 1f)) {
-            val tint by animateColorAsState(Tints[cfg?.theme?.tint] ?: Tints.getValue("Emerald"), tween(700), label = "tint")
+        // The design is 1280 × 800. Tablets (16:9, 4:3) scale by the side that runs out first, so nothing is cut off;
+        // the extra width or height goes to the cards, which stretch. Phones get their own, smaller design canvas
+        // (980 × 520 sideways, 500 × 980 upright), so text and buttons stay a normal size.
+        val w = maxWidth.value
+        val hgt = maxHeight.value
+        val phone = minOf(w, hgt) < 600f
+        val portrait = hgt > w
+        val pageUnit = when {
+            !phone -> minOf(w / 1280f, hgt / 800f)
+            portrait -> minOf(w / 500f, hgt / 980f)
+            else -> minOf(w / 980f, hgt / 520f)
+        }
+        // Full-screen tools and cards are made for a wide screen: on a phone they turn it sideways
+        // and use a canvas a bit smaller than the tablet's.
+        val toolUnit = if (phone) minOf(maxOf(w, hgt) / 1060f, minOf(w, hgt) / 660f) else pageUnit
+        val toolOpen = settings || display || touchpad || presenter || drawing || claudeCard || connectionCard || updateCard ||
+            library || apps || saver || status is Status.Pending || status is Status.Refused
+        val activity = LocalContext.current as? android.app.Activity
+        LaunchedEffect(phone, toolOpen) {
+            activity?.requestedOrientation = when {
+                !phone || toolOpen -> android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                else -> android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+            }
+        }
+        val tint by animateColorAsState(Tints[cfg?.theme?.tint] ?: Tints.getValue("Emerald"), tween(700), label = "tint")
+        CompositionLocalProvider(LocalScale provides Scale(pageUnit, 1f), LocalForm provides Form(phone, portrait)) {
             Background(tint)
 
             val c = cfg
             if (c == null || c.pages.isEmpty()) {
                 Waiting(status) { settings = true }
             } else {
-                val pager = rememberPagerState { c.pages.size }
+                // On a phone the home page is two screens: clock and player, then its tiles.
+                val screens = remember(c.pages, phone) {
+                    c.pages.flatMap { p -> if (phone && p.layout == "home") listOf(p to 0, p to 1) else listOf(p to 0) }
+                }
+                val pager = rememberPagerState { screens.size }
                 val scope = rememberCoroutineScope()
                 val goTo: (String?) -> Unit = { id ->
-                    val i = c.pages.indexOfFirst { it.id == id }
+                    val i = screens.indexOfFirst { it.first.id == id }
                     if (i >= 0) scope.launch { pager.animateScrollToPage(i) }
                 }
                 // A short, quick swipe is enough to change the page, and the page settles softly.
@@ -223,8 +250,8 @@ fun App(link: Link) {
                     snapAnimationSpec = spring(dampingRatio = 0.86f, stiffness = 420f),
                     snapPositionalThreshold = 0.18f
                 )
-                HorizontalPager(pager, Modifier.fillMaxSize(), beyondViewportPageCount = 1, flingBehavior = fling, key = { c.pages.getOrNull(it)?.id ?: it }) { i ->
-                    val page = c.pages.getOrNull(i) ?: return@HorizontalPager
+                HorizontalPager(pager, Modifier.fillMaxSize(), beyondViewportPageCount = 1, flingBehavior = fling, key = { screens.getOrNull(it)?.let { s -> s.first.id + "#" + s.second } ?: it }) { i ->
+                    val (page, part) = screens.getOrNull(i) ?: return@HorizontalPager
                     val onTap: (Tile) -> Unit = { t ->
                         when (t.kind) {
                             "page" -> goTo(t.page)
@@ -242,20 +269,27 @@ fun App(link: Link) {
                         scaleX = 1f - 0.05f * away
                         scaleY = 1f - 0.05f * away
                     }) {
-                        when (page.layout) {
-                            "home" -> HomePage(page, c, live, status, link, onTap, { library = true }, { apps = true }, { touchpad = true }, { presenter = true }, { drawing = true }, { claudeCard = true }, { connectionCard = true }, { updateCard = true }) { settings = true }
-                            "sliders" -> SlidersPage(live, link)
-                            "big" -> GridPage(page, c, live, onTap, cols = 3, rows = 2)
-                            else -> GridPage(page, c, live, onTap, cols = 4, rows = 3)
+                        val upright = phone && portrait
+                        when {
+                            page.layout == "home" && phone && part == 0 ->
+                                PhoneHome(c, live, status, link, portrait, { library = true }, { apps = true }, { touchpad = true }, { presenter = true }, { drawing = true }, { claudeCard = true }, { connectionCard = true }, { updateCard = true }) { settings = true }
+                            page.layout == "home" && phone ->
+                                GridPage(page, c, live, onTap, cols = if (portrait) 2 else 4, rows = if (portrait) 4 else 2)
+                            page.layout == "home" -> HomePage(page, c, live, status, link, onTap, { library = true }, { apps = true }, { touchpad = true }, { presenter = true }, { drawing = true }, { claudeCard = true }, { connectionCard = true }, { updateCard = true }) { settings = true }
+                            page.layout == "sliders" -> SlidersPage(live, link)
+                            page.layout == "big" -> GridPage(page, c, live, onTap, cols = if (upright) 2 else 3, rows = if (upright) 3 else 2, big = true)
+                            else -> GridPage(page, c, live, onTap, cols = if (upright) 3 else 4, rows = if (upright) 4 else 3)
                         }
                     }
                 }
-                if (c.pages.size > 1) Dots(c.pages.size, pager.currentPage, Modifier.align(Alignment.BottomCenter)) { i -> scope.launch { pager.animateScrollToPage(i) } }
+                if (screens.size > 1) Dots(screens.size, pager.currentPage, Modifier.align(Alignment.BottomCenter)) { i -> scope.launch { pager.animateScrollToPage(i) } }
                 if (status !is Status.Connected && status !is Status.Pending && status !is Status.Refused) {
                     OfflineBanner(status, link, Modifier.align(Alignment.TopCenter).offset(y = 10.u))
                 }
             }
 
+        }
+        CompositionLocalProvider(LocalScale provides Scale(toolUnit, 1f), LocalForm provides Form(phone, false)) {
             if (library) LibraryScreen(link, live.spotify, tint) { library = false }
             if (apps) AppsScreen(tint) { apps = false }
             if (display) DisplayScreen(link) { display = false }
@@ -311,7 +345,7 @@ fun OfflineBanner(status: Status, link: Link, modifier: Modifier) {
         Column {
             T("PC is offline", 18.us, weight = FontWeight.SemiBold)
             T(
-                if (status is Status.Connecting) "Trying ${status.host} · Check that Lumen Desk is running" else "Check that the PC is on and Lumen Desk is running",
+                if (status is Status.Connecting) "Trying ${status.host} · Check that Lumen Deck is running" else "Check that the PC is on and Lumen Deck is running",
                 14.us, Grey1
             )
         }
@@ -405,6 +439,23 @@ fun HomePage(page: Page, cfg: PanelConfig, live: LiveState, status: Status, link
                 Quad(page.tiles.subList(0, 4), cfg, live, onTap)
                 Quad(page.tiles.subList(4, 8), cfg, live, onTap)
             }
+        }
+    }
+}
+
+/** A phone's first screen: the clock card (with the tools) and the player – side by side, or one above the other. */
+@Composable
+fun PhoneHome(cfg: PanelConfig, live: LiveState, status: Status, link: Link, portrait: Boolean, onLibrary: () -> Unit, onApps: () -> Unit, onTouchpad: () -> Unit, onPresenter: () -> Unit, onDraw: () -> Unit, onClaude: () -> Unit, onConnection: () -> Unit, onUpdate: () -> Unit, onSettings: () -> Unit) {
+    val usb by link.viaUsb.collectAsState()
+    if (portrait) {
+        Column(Modifier.fillMaxSize().padding(start = 18.u, end = 18.u, top = 18.u, bottom = 34.u), verticalArrangement = Arrangement.spacedBy(14.u)) {
+            ClockCard(cfg, live, status, usb, Modifier.weight(1.15f).fillMaxWidth(), onApps, onTouchpad, onPresenter, onDraw, onClaude, onConnection, onUpdate, onSettings)
+            SpotifyCard(live.spotify, live.audio, cfg.theme.media, link, onLibrary, Modifier.weight(1f).fillMaxWidth())
+        }
+    } else {
+        Row(Modifier.fillMaxSize().padding(start = 18.u, end = 18.u, top = 18.u, bottom = 30.u), horizontalArrangement = Arrangement.spacedBy(14.u)) {
+            ClockCard(cfg, live, status, usb, Modifier.weight(1f).fillMaxHeight(), onApps, onTouchpad, onPresenter, onDraw, onClaude, onConnection, onUpdate, onSettings)
+            SpotifyCard(live.spotify, live.audio, cfg.theme.media, link, onLibrary, Modifier.weight(1.3f).fillMaxHeight())
         }
     }
 }
@@ -628,13 +679,15 @@ fun SpotifyCard(sp: Spotify, audio: Audio?, style: String, link: Link, onLibrary
     }
     val pos = Link.position(sp, maxOf(tick, sp.receivedAt))
     val art = rememberArt(sp.image)
+    // On a phone the card is narrow: the cover and the small volume controls make room for the buttons.
+    val compact = LocalForm.current.phone
 
     Row(
         modifier.glass(RoundedCornerShape(40.u)).padding(if (big) 26.u else 28.u),
         horizontalArrangement = Arrangement.spacedBy(if (big) 26.u else 28.u),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
+        if (!compact) Box(
             Modifier.fillMaxHeight().widthIn(max = if (big) 200.u else 220.u).aspectSquare()
                 .clip(RoundedCornerShape(28.u))
                 .background(Brush.linearGradient(listOf(tint, Color(0xFF121214))))
@@ -676,7 +729,8 @@ fun SpotifyCard(sp: Spotify, audio: Audio?, style: String, link: Link, onLibrary
                 Spacer(Modifier.width(10.u))
                 RoundButton("next", 52.u, null, White) { link.spotify("next") }
                 Spacer(Modifier.weight(1f))
-                if (big) OutputChip(audio!!) { link.audio("output") }
+                if (compact) Unit
+                else if (big) OutputChip(audio!!) { link.audio("output") }
                 else if (audio != null) {
                     Glyph(if (audio.muted) "volume-x" else "volume", 20.u, Grey1)
                     Spacer(Modifier.width(10.u))
@@ -710,7 +764,7 @@ fun SpotifyStart(link: Link) {
     }
     Row(Modifier.padding(top = 6.u), horizontalArrangement = Arrangement.spacedBy(8.u)) {
         SmallChip("Open Spotify") { link.spotify("open") }
-        for ((id, name) in lists) SmallChip(if (name.length > 16) name.take(15) + "…" else name) { link.libPlay(id, null, emptyList()) }
+        for ((id, name) in lists.take(if (LocalForm.current.phone) 1 else 2)) SmallChip(if (name.length > 16) name.take(15) + "…" else name) { link.libPlay(id, null, emptyList()) }
     }
 }
 
@@ -864,8 +918,8 @@ fun Bar(fraction: Float, color: Color, knob: Boolean, modifier: Modifier, onChan
 // ---------- other pages: grid ----------
 
 @Composable
-fun GridPage(page: Page, cfg: PanelConfig, live: LiveState, onTap: (Tile) -> Unit, cols: Int, rows: Int) {
-    val gap = if (cols == 3) 18.u else 14.u
+fun GridPage(page: Page, cfg: PanelConfig, live: LiveState, onTap: (Tile) -> Unit, cols: Int, rows: Int, big: Boolean = false) {
+    val gap = if (big) 18.u else 14.u
     Column(Modifier.fillMaxSize().padding(24.u), verticalArrangement = Arrangement.spacedBy(gap)) {
         for (row in 0 until rows) {
             Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(gap)) {
@@ -874,7 +928,7 @@ fun GridPage(page: Page, cfg: PanelConfig, live: LiveState, onTap: (Tile) -> Uni
                     val tile = id?.let { cfg.tiles[it] }
                     val m = Modifier.weight(1f).fillMaxHeight()
                     if (tile == null) Spacer(m)
-                    else TileView(tile, live.tiles[tile.id] == true, small = false, modifier = m, big = cols == 3) { onTap(tile) }
+                    else TileView(tile, live.tiles[tile.id] == true, small = false, modifier = m, big = big) { onTap(tile) }
                 }
             }
         }
@@ -890,10 +944,10 @@ fun Waiting(status: Status, onSettings: () -> Unit) {
             Modifier.glass(RoundedCornerShape(40.u)).padding(40.u).widthIn(max = 620.u),
             verticalArrangement = Arrangement.spacedBy(14.u)
         ) {
-            T("Lumen Desk", 44.us, family = ClockFonts.getValue("Fraunces").family, letterSpacing = (-0.03f).em)
+            T("Lumen Deck", 44.us, family = ClockFonts.getValue("Fraunces").family, letterSpacing = (-0.03f).em)
             T(if (status is Status.Connecting) "Connecting to PC…" else "Looking for the PC on the network…", 20.us, Grey0)
             BasicText(
-                "Start Lumen Desk on the PC. The tablet and the PC must be on the same Wi-Fi (or connected by USB cable).",
+                "Start Lumen Deck on the PC. The tablet and the PC must be on the same Wi-Fi (or connected by USB cable).",
                 style = TextStyle(color = Grey2, fontSize = 16.us, fontFamily = Inter)
             )
             Spacer(Modifier.height(6.u))
@@ -908,7 +962,7 @@ fun PairingCard(p: Status.Pending) {
         Column(Modifier.glass(RoundedCornerShape(40.u)).background(Ink.copy(alpha = 0.75f)).padding(40.u).widthIn(max = 660.u), verticalArrangement = Arrangement.spacedBy(12.u)) {
             T(if (p.known) "The PC does not know this tablet any more" else "Allow the tablet on the PC", 30.us, weight = FontWeight.SemiBold)
             BasicText(
-                "On the PC${if (p.pc.isNotEmpty()) " ${p.pc}" else ""} open Lumen Desk → Tablet. Press Allow only if it shows this same code:",
+                "On the PC${if (p.pc.isNotEmpty()) " ${p.pc}" else ""} open Lumen Deck → Tablet. Press Allow only if it shows this same code:",
                 style = TextStyle(color = Grey1, fontSize = 18.us, fontFamily = Inter)
             )
             T(p.code.chunked(3).joinToString(" "), 54.us, weight = FontWeight.SemiBold, letterSpacing = 0.08f.em)
@@ -931,8 +985,8 @@ fun RefusedCard(pc: String, link: Link) {
         Column(Modifier.glass(RoundedCornerShape(40.u)).background(Ink.copy(alpha = 0.75f)).padding(40.u).widthIn(max = 660.u), verticalArrangement = Arrangement.spacedBy(14.u)) {
             T("${pc.ifEmpty { "The PC" }} does not accept this tablet", 30.us, weight = FontWeight.SemiBold)
             BasicText(
-                "The tablet's key for this PC is not the one the PC knows – it was probably paired with another PC with Lumen Desk, " +
-                    "or removed on this PC. Pair again: the tablet then shows a code, and you allow it on the PC (Lumen Desk → Tablet). " +
+                "The tablet's key for this PC is not the one the PC knows – it was probably paired with another PC with Lumen Deck, " +
+                    "or removed on this PC. Pair again: the tablet then shows a code, and you allow it on the PC (Lumen Deck → Tablet). " +
                     "Your pages and tiles are kept on the PC.",
                 style = TextStyle(color = Grey1, fontSize = 17.us, fontFamily = Inter)
             )

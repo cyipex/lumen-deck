@@ -33,9 +33,9 @@ import java.io.File
 import java.security.MessageDigest
 
 /**
- * Updating the tablet app over Wi-Fi: the PC offers the app that came with its Lumen Desk when it is newer,
+ * Updating the tablet app over Wi-Fi: the PC offers the app that came with its Lumen Deck when it is newer,
  * the tablet downloads it over the encrypted connection, checks its SHA-256 and hands it to Android's installer
- * (Android asks once to allow installing apps from Lumen Desk).
+ * (Android asks once to allow installing apps from Lumen Deck).
  */
 object Updater {
     sealed interface State {
@@ -136,11 +136,11 @@ fun UpdateCard(link: Link, onClose: () -> Unit) {
                 .padding(36.u).widthIn(max = 620.u),
             verticalArrangement = Arrangement.spacedBy(16.u)
         ) {
-            T("New version of Lumen Desk", 28.us, weight = FontWeight.SemiBold)
+            T("New version of Lumen Deck", 28.us, weight = FontWeight.SemiBold)
             val text = when (val s = st) {
                 is Updater.State.Offered -> "Your PC has a newer tablet app (${s.size / 1024 / 1024 + 1} MB). It downloads over the encrypted connection; your layout and pairing stay."
                 is Updater.State.Downloading -> "Downloading… ${s.done * 100 / s.of} %"
-                is Updater.State.Ready -> "Downloaded and checked. Android now asks to install it – if it asks to allow apps from Lumen Desk, allow it once."
+                is Updater.State.Ready -> "Downloaded and checked. Android now asks to install it – if it asks to allow apps from Lumen Deck, allow it once."
                 is Updater.State.Failed -> s.why
                 Updater.State.None -> "The tablet app is up to date."
             }

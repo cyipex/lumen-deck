@@ -216,7 +216,7 @@ function needsRelogin() {
   return !!tokens && !String(tokens.scope || '').includes('user-library-read');
 }
 
-const RELOGIN = 'The library needs a new permission: open Lumen Desk → Spotify on the PC, log out and log in again.';
+const RELOGIN = 'The library needs a new permission: open Lumen Deck → Spotify on the PC, log out and log in again.';
 
 function track(t) {
   if (!t || !t.uri) return null;

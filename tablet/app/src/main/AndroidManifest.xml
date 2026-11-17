@@ -22,7 +22,7 @@
 
     <!-- allowBackup off: "adb backup" cannot copy the pairing key out of the tablet. -->
     <application
-        android:label="Lumen Desk"
+        android:label="Lumen Deck"
         android:icon="@drawable/ic_launcher"
         android:allowBackup="false"
         android:usesCleartextTraffic="true"
@@ -34,9 +34,8 @@
             android:launchMode="singleTask"
             android:stateNotNeeded="true"
             android:clearTaskOnLaunch="true"
-            android:screenOrientation="sensorLandscape"
             android:windowSoftInputMode="adjustPan"
-            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|uiMode|density">
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|smallestScreenSize|screenLayout|uiMode|density">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

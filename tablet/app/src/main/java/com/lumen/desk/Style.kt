@@ -90,6 +90,14 @@ class Scale(val unit: Float, val fontScale: Float)
 
 val LocalScale = compositionLocalOf { Scale(1f, 1f) }
 
+/**
+ * What kind of screen the app runs on. Tablets keep the 1280x800 layout; phones (shorter side under
+ * 600 dp) get their own layouts, held sideways or upright, with bigger text than a shrunk tablet layout.
+ */
+data class Form(val phone: Boolean, val portrait: Boolean)
+
+val LocalForm = compositionLocalOf { Form(phone = false, portrait = false) }
+
 val Number.u: Dp
     @Composable get() = (toFloat() * LocalScale.current.unit).dp
 

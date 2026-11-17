@@ -15,7 +15,7 @@ android {
         targetSdk = 34
         // Grows with every build (minutes since 2026), so the PC can tell which tablet app is newer.
         versionCode = ((System.currentTimeMillis() / 60_000L) - 29_454_000L).toInt().coerceAtLeast(2)
-        versionName = "1.1"
+        versionName = "1.2"
     }
 
     sourceSets {

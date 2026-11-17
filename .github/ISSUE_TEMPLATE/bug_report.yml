@@ -30,8 +30,8 @@ body:
   - type: input
     id: windows
     attributes:
-      label: Windows version and Lumen Desk version
-      placeholder: e.g. Windows 11 23H2, Lumen Desk 1.1.0
+      label: Windows version and Lumen Deck version
+      placeholder: e.g. Windows 11 23H2, Lumen Deck 1.1.0
   - type: dropdown
     id: connection
     attributes:
@@ -41,5 +41,5 @@ body:
     id: log
     attributes:
       label: Server log (optional)
-      description: Lumen Desk settings → Tablet → Server status. Remove anything personal first.
+      description: Lumen Deck settings → Tablet → Server status. Remove anything personal first.
       render: text

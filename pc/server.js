@@ -1,4 +1,4 @@
-// Lumen Desk – PC server. The tablet connects over an encrypted WebSocket on port 47801 (all networks),
+// Lumen Deck – PC server. The tablet connects over an encrypted WebSocket on port 47801 (all networks),
 // the settings live at http://127.0.0.1:47803 (only this PC).
 const http = require('http');
 const fs = require('fs');
@@ -33,9 +33,9 @@ picker.apps().then((l) => { startApps = l; }, () => {});
 
 // Unexpected error: log it and exit with code 1, the supervisor (run.js) starts the server again.
 process.on('uncaughtException', (e) => {
-  // Port already taken = Lumen Desk already runs: quietly stop (exit code 0 stops the supervisor too).
+  // Port already taken = Lumen Deck already runs: quietly stop (exit code 0 stops the supervisor too).
   if (e && e.code === 'EADDRINUSE') {
-    console.log(`Port ${e.port} is already in use (another Lumen Desk, or another program). This copy stops.`);
+    console.log(`Port ${e.port} is already in use (another Lumen Deck, or another program). This copy stops.`);
     process.exit(0);
   }
   console.error('Unexpected error:', e && e.stack ? e.stack : e);
@@ -286,7 +286,7 @@ function onTabletMessage(ws, msg) {
   else if (msg.t === 'drawscreen') display.drawScreen(msg.i).then((s) => send(ws, { t: 'drawscreen', ...s })).catch(fail);
   else if (msg.t === 'draw') display.draw(msg);
   // Second monitor: a one-time ticket (30 s) and its own key for the separate, encrypted video connection.
-  // The tablet tells its app version; an older one is offered the app that came with this Lumen Desk.
+  // The tablet tells its app version; an older one is offered the app that came with this Lumen Deck.
   else if (msg.t === 'version') {
     ws.appVersion = Number(msg.code) || 0;
     const offer = tabletapp.offerFor(ws.appVersion);
@@ -585,8 +585,8 @@ wss.on('connection', (ws, req) => {
       // An app from before the encrypted connection: tell it why instead of closing silently
       // (old apps show the toast; the close reason is for anything else that checks).
       if (!isBinary && msg && msg.t === 'hello') {
-        if (ws.ip) logTablet('refused: old app without encryption, update Lumen Desk on the tablet', ws);
-        ws.send(JSON.stringify({ t: 'toast', text: 'Update Lumen Desk on this tablet – the PC now needs the encrypted connection.' }));
+        if (ws.ip) logTablet('refused: old app without encryption, update Lumen Deck on the tablet', ws);
+        ws.send(JSON.stringify({ t: 'toast', text: 'Update Lumen Deck on this tablet – the PC now needs the encrypted connection.' }));
         return ws.close(4426, 'update required: encrypted hello2');
       }
       if (isBinary || !msg || msg.t !== 'hello2') return ws.close(4400, 'bad hello');
@@ -785,7 +785,7 @@ if (!QUIET) beacon.bind(() => {
 const onListenError = (e) => {
   if (e.code === 'EADDRINUSE') {
     // Said out loud: a copy that quietly stops makes "the server does not run" very hard to find.
-    console.log(`Port ${e.port} is already in use (another Lumen Desk, or another program). This copy stops.`);
+    console.log(`Port ${e.port} is already in use (another Lumen Deck, or another program). This copy stops.`);
     process.exit(0);
   }
   throw e;
@@ -812,5 +812,5 @@ server.listen(PORT, '0.0.0.0', () => {
   if (!QUIET) vmAutoOff(5000);
 });
 settingsServer.listen(SETTINGS_PORT, '127.0.0.1', () => {
-  console.log(`Lumen Desk running: ${SETTINGS_URL}`);
+  console.log(`Lumen Deck running: ${SETTINGS_URL}`);
 });

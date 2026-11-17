@@ -1,4 +1,4 @@
-// Lumen Desk settings window. Every change is saved right away and sent to the tablet.
+// Lumen Deck settings window. Every change is saved right away and sent to the tablet.
 const TINTS = [
   ['Graphite', '#3A3A3D'], ['Ocean', '#2F4A8A'], ['Indigo', '#3A3478'], ['Lavender', '#5E4B8B'], ['Rose', '#7A4458'],
   ['Terracotta', '#7A3E2E'], ['Amber', '#8A5A2B'], ['Sand', '#7A6A4A'], ['Sage', '#4E6B5C'], ['Emerald', '#1F5E4E']
@@ -781,7 +781,7 @@ async function renderNetwork() {
     if (n.wifi) facts.push(`Wi-Fi: <b>${esc(n.wifi)}</b> – the tablet must be on the same one`);
     if (n.usb) facts.push('A tablet is connected by USB cable');
     for (const p of n.networks) {
-      if (p.category === 'Public') facts.push(`Windows treats "${esc(p.network)}" as a public network. Lumen Desk is allowed there, but school, hotel and café Wi-Fi often stop devices from seeing each other – then use the USB cable.`);
+      if (p.category === 'Public') facts.push(`Windows treats "${esc(p.network)}" as a public network. Lumen Deck is allowed there, but school, hotel and café Wi-Fi often stop devices from seeing each other – then use the USB cable.`);
     }
     $('#netList').innerHTML = rows.join('') + `<p class="muted" style="margin-top:10px">${facts.join('<br>')}</p>`;
   } catch (e) { $('#netList').innerHTML = `<p class="muted">${esc(e.message)}</p>`; }
@@ -841,7 +841,7 @@ async function renderLog() {
   try {
     const l = await api('GET', '/api/log');
     const up = l.uptime < 3600 ? Math.round(l.uptime / 60) + ' min' : (l.uptime / 3600).toFixed(1) + ' h';
-    $('#serverState').textContent = `Running for ${up}. ` + (l.supervised ? 'It restarts by itself after a crash.' : 'Started without the supervisor – it will not restart after a crash (start it with the Lumen Desk icon).');
+    $('#serverState').textContent = `Running for ${up}. ` + (l.supervised ? 'It restarts by itself after a crash.' : 'Started without the supervisor – it will not restart after a crash (start it with the Lumen Deck icon).');
     $('#serverLog').textContent = l.lines.length ? l.lines.join('\n') : 'The log is empty.';
     $('#serverLog').scrollTop = 1e9;
   } catch (e) { toast(e.message); }

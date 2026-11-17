@@ -1,4 +1,4 @@
-// Where Lumen Desk keeps its files.
+// Where Lumen Deck keeps its files.
 //   From the repository: everything inside pc/ (pc/data, pc/bin, ../shared/icons.json).
 //   Installed (LumenDesk.exe): program files next to the exe, user data and downloaded tools
 //   in %APPDATA%\Lumen Desk, so updates and uninstalling never touch the user's settings.

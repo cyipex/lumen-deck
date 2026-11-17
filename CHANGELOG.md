@@ -1,7 +1,9 @@
 # Changelog
 
-## Unreleased
+## 1.2.0 – 2026-11-17
 
+- **New name: Lumen Deck** (was Lumen Desk) – *old screens, new light*. Updating keeps your settings, pairing and layout.
+- **Real phone layouts** – upright and sideways, with normal-size text and buttons instead of a shrunk tablet screen. Tools turn the phone sideways by themselves.
 - **Virtual monitor on/off** – the second monitor's virtual screen turns off by itself while the tablet is not showing it (no more lost mouse), or by hand in the PC settings → Tablet.
 - **Lumen Mirror removed** – the phone-mirroring app and its dock button are gone.
 
@@ -20,7 +22,7 @@
 - **Connection details** on the tablet and the PC (addresses, Wi-Fi, USB).
 - **Layout backups** – the PC keeps the last 30 versions of your pages and tiles; restore with one click.
 - Works on phones too, and on 16:9 and 4:3 tablets – the layout scales to fit.
-- One-command install: `irm https://raw.githubusercontent.com/cyipex/lumen-desk/main/get.ps1 | iex`.
+- One-command install: `irm https://raw.githubusercontent.com/cyipex/lumen-deck/main/get.ps1 | iex`.
 
 ### Security
 - Encrypted tablet connection: ECDH P-256 key exchange, pairing key per tablet and PC, AES-256-GCM. New tablets are allowed after comparing a 6-digit code.

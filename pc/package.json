@@ -1,8 +1,8 @@
 {
   "name": "lumen-desk-pc",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
-  "description": "PC part of Lumen Desk: server for the tablet, macros, Spotify and lights",
+  "description": "PC part of Lumen Deck: server for the tablet, macros, Spotify and lights",
   "main": "server.js",
   "scripts": {
     "start": "node run.js",

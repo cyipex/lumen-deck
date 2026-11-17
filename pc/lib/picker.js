@@ -30,12 +30,12 @@ async function pick(mode) {
   const script = mode === 'folder'
     ? OWNER + `
 $d = New-Object System.Windows.Forms.FolderBrowserDialog
-$d.Description = 'Choose a folder for Lumen Desk'
+$d.Description = 'Choose a folder for Lumen Deck'
 if ($d.ShowDialog($owner) -eq 'OK') { $d.SelectedPath }
 $owner.Close()`
     : OWNER + `
 $d = New-Object System.Windows.Forms.OpenFileDialog
-$d.Title = 'Choose a file or program for Lumen Desk'
+$d.Title = 'Choose a file or program for Lumen Deck'
 $d.Filter = 'Programs and shortcuts (*.exe;*.lnk;*.bat;*.cmd;*.url)|*.exe;*.lnk;*.bat;*.cmd;*.url|All files (*.*)|*.*'
 $d.FilterIndex = 2
 $d.InitialDirectory = [Environment]::GetFolderPath('Desktop')

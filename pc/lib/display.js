@@ -48,7 +48,7 @@ function probe(idx) {
 let target = null; // { screen, idx, desk }
 
 async function findTarget() {
-  if (!fs.existsSync(FFMPEG)) throw new Error('ffmpeg is not installed yet. On the PC open Lumen Desk → Tablet → Extras and install it.');
+  if (!fs.existsSync(FFMPEG)) throw new Error('ffmpeg is not installed yet. On the PC open Lumen Deck → Tablet → Extras and install it.');
   const list = await screens();
   const others = list.filter((s) => !s.primary);
   if (!others.length) throw new Error('Virtual monitor not found. Install Virtual Display Driver and set Windows to Extend these displays.');

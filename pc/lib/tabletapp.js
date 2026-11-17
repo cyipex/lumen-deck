@@ -1,4 +1,4 @@
-// The tablet app that came with this Lumen Desk (the installer puts it in tablet/, with version.json).
+// The tablet app that came with this Lumen Deck (the installer puts it in tablet/, with version.json).
 // A connected tablet with an older version is offered it and downloads it over the encrypted connection,
 // so updating the tablet needs no cable.
 const fs = require('fs');

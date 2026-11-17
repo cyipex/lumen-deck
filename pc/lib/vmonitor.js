@@ -1,6 +1,6 @@
 // The virtual monitor (Virtual Display Driver) that the tablet shows as a second monitor.
 // While the tablet is not showing it, Windows still has an extra screen the mouse can wander onto,
-// so Lumen Desk can detach it and attach it again. This only changes the display layout (like
+// so Lumen Deck can detach it and attach it again. This only changes the display layout (like
 // Windows Settings → Display), so it needs no admin rights and the driver stays installed.
 const { execFile } = require('child_process');
 

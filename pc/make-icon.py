@@ -1,4 +1,4 @@
-# Generates the Lumen Desk icon (dark glass, emerald glow, a grid of tiles with one switched on).
+# Generates the Lumen Deck icon (dark glass, emerald glow, a grid of tiles with one switched on).
 # Output: ui/icon.png (settings window), icon.ico (desktop icon). Run: python make-icon.py
 import os
 from PIL import Image, ImageDraw, ImageFilter
